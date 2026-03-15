@@ -14,10 +14,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
 
-    const inquiry = saveVendorInquiryToDB({ name, email, company, vendorType, message: message ?? "" });
-    await triggerVendorLeadPhase1(inquiry);
+    // Vercel serverless note:
+    // local JSON file writes may fail in read-only/runtime environments.
+    // We fallback to a transient lead object so the form still works.
+    let inquiry: any = {
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+      name,
+      email,
+      company,
+      vendorType,
+      message: message ?? "",
+      status: "new" as const,
+    };
 
-    return NextResponse.json({ id: inquiry.id }, { status: 201 });
+    try {
+      inquiry = saveVendorInquiryToDB({
+        name,
+        email,
+        company,
+        vendorType,
+        message: message ?? "",
+      });
+    } catch {
+      // keep fallback inquiry when file persistence is unavailable
+    }
+
+    try {
+      await triggerVendorLeadPhase1(inquiry);
+    } catch {
+      // non-blocking for form submit UX
+    }
+
+    return NextResponse.json({ id: inquiry.id, accepted: true }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
