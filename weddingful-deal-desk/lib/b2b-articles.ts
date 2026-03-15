@@ -139,6 +139,71 @@ export const b2bArticles: B2BArticle[] = [
     audience: "Regional growth teams",
     intro: "Clustered rollouts reduce operational complexity and speed up learning loops.",
     sections: [{ heading:"Cluster strategy", paragraphs:["Start with one destination pod, validate conversion lift, then replicate to adjacent markets."] }]
+  },
+  {
+    slug: "wedding-venue-demo-booking-playbook",
+    tag: "Sales Playbook",
+    title: "Wedding Venue Demo Booking Playbook: From Inquiry to Pilot",
+    description: "A practical system to increase demo bookings and move venue inquiries into paid pilot programs.",
+    updated: "March 2026",
+    audience: "Venue sales leaders and SDR teams",
+    intro: "Most teams lose momentum between first contact and booked demo. This playbook standardizes speed, messaging, and follow-up so high-intent accounts convert.",
+    sections: [
+      {
+        heading: "What breaks demo conversion",
+        paragraphs: [
+          "Inconsistent follow-up timing, generic outreach, and unclear next steps are the biggest causes of drop-off.",
+          "A simple sequence with clear ownership often improves booking rates in the first week."
+        ],
+        bullets: [
+          "Slow first touch (over 24h)",
+          "No urgency or value in outreach",
+          "No booking link in messages",
+          "No escalation for high-intent leads"
+        ]
+      },
+      {
+        heading: "5-step booking workflow",
+        paragraphs: [
+          "Use this sequence for every net-new venue inquiry.",
+          "The goal is to secure a 15-minute demo while context is still fresh."
+        ],
+        bullets: [
+          "Step 1: Immediate confirmation + value recap",
+          "Step 2: Day 0 email with booking link",
+          "Step 3: Day 2 follow-up with pilot outcomes",
+          "Step 4: Day 5 close-loop message",
+          "Step 5: Escalate high-intent leads to direct outreach"
+        ]
+      },
+      {
+        heading: "Messaging that books demos",
+        paragraphs: [
+          "Lead with outcomes operators care about: fewer missed calls, faster qualification, and cleaner handoff to sales.",
+          "Use short messages with one call-to-action and one booking link."
+        ],
+        bullets: [
+          "Reference current pain: missed after-hours inquiries",
+          "Quantify expected impact where possible",
+          "Offer a concrete time-bound pilot",
+          "Keep CTA singular: Book Demo"
+        ]
+      },
+      {
+        heading: "Weekly KPI scorecard",
+        paragraphs: [
+          "Track conversion from inquiry to demo booked and demo to pilot start.",
+          "Review these weekly and adjust sequence copy every 2 weeks."
+        ],
+        bullets: [
+          "Inquiry → first touch time",
+          "Demo booking rate",
+          "Demo attendance rate",
+          "Pilot start rate",
+          "Sales cycle length"
+        ]
+      }
+    ]
   }
 ];
 
