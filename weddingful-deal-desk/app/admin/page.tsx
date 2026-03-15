@@ -44,21 +44,21 @@ export default function AdminPage() {
     : 0;
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] px-4 py-8">
+    <main className="min-h-screen bg-[#f6f7fb] px-3 sm:px-4 py-6 sm:py-8 overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-gray-500 font-semibold mb-1">
               Weddingful Admin
             </p>
-            <h1 className="text-3xl font-semibold text-gray-900">Platform Control Center</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Platform Control Center</h1>
             <p className="text-sm text-gray-500 mt-1">
               Inspiration mock for account provisioning, scripts, and call operations.
             </p>
           </div>
           <Link
             href="/brand/dashboard"
-            className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
+            className="w-full sm:w-auto text-center rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
           >
             View Brand Dashboard
           </Link>
@@ -67,7 +67,7 @@ export default function AdminPage() {
         <div className="grid lg:grid-cols-[220px_minmax(0,1fr)] gap-5">
           <aside className="rounded-2xl border border-gray-200 bg-white p-4 h-fit lg:sticky lg:top-24">
             <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Admin Menu</p>
-            <ul className="space-y-2 text-sm">
+            <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-sm">
               {navItems.map((item, i) => (
                 <li key={item}>
                   <button
@@ -132,7 +132,7 @@ export default function AdminPage() {
               </section>
             </div>
 
-            <section className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+            <section className="rounded-2xl border border-gray-200 bg-white overflow-x-auto">
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Account Queue</h2>
@@ -140,7 +140,7 @@ export default function AdminPage() {
                 </div>
                 <button className="text-sm font-semibold text-rose-600 hover:underline">Export CSV</button>
               </div>
-              <table className="w-full text-sm min-w-[760px]">
+              <table className="w-full text-sm min-w-[640px] md:min-w-[760px]">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     {["Company", "Contact", "Stage", "Provisioning", "Last Activity"].map((h) => (
