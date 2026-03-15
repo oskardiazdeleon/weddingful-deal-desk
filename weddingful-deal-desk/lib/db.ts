@@ -8,21 +8,34 @@ import path from "path";
 const DATA_DIR = path.join(process.cwd(), "data");
 
 function ensureFile(filePath: string, init: unknown[] = []) {
-  if (!fs.existsSync(filePath)) {
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(init, null, 2));
+  try {
+    if (!fs.existsSync(filePath)) {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, JSON.stringify(init, null, 2));
+    }
+  } catch {
+    // In serverless/read-only environments (e.g. Vercel), file writes may fail.
+    // We gracefully degrade to non-persistent in-memory behavior.
   }
 }
 
 function readJSON<T>(filePath: string): T[] {
-  ensureFile(filePath);
-  const raw = fs.readFileSync(filePath, "utf8");
-  return JSON.parse(raw) as T[];
+  try {
+    ensureFile(filePath);
+    const raw = fs.readFileSync(filePath, "utf8");
+    return JSON.parse(raw) as T[];
+  } catch {
+    return [];
+  }
 }
 
 function writeJSON<T>(filePath: string, data: T[]) {
-  ensureFile(filePath);
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  try {
+    ensureFile(filePath);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  } catch {
+    // no-op on read-only/serverless runtime
+  }
 }
 
 // ── Couple Leads ────────────────────────────────────────────────────────────
