@@ -1,7 +1,7 @@
 import { saveVendorFollowups, type VendorInquiry } from "@/lib/db";
 
 const BOOKING_URL = process.env.BOOKING_URL || "https://calendly.com/your-team/demo";
-const FROM_EMAIL = process.env.OUTREACH_FROM_EMAIL || "ops@weddingful.com";
+const FROM_EMAIL = process.env.OUTREACH_FROM_EMAIL || "onboarding@resend.dev";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 function addDays(date: Date, days: number) {
@@ -11,7 +11,7 @@ function addDays(date: Date, days: number) {
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
-  if (!RESEND_API_KEY) return { skipped: true };
+  if (!RESEND_API_KEY) return { skipped: true, reason: "missing_resend_api_key" };
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -75,8 +75,18 @@ export async function triggerVendorLeadPhase1(lead: VendorInquiry) {
   `;
 
   try {
-    await sendEmail(lead.email, "Your Weddingful pilot access + demo booking", introHtml);
-  } catch {
-    // non-blocking for MVP
+    const result: any = await sendEmail(
+      lead.email,
+      "Your Weddingful pilot access + demo booking",
+      introHtml
+    );
+
+    if (result?.skipped) {
+      return { ok: false, reason: result.reason || "email_skipped" };
+    }
+
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, reason: e?.message || "email_send_failed" };
   }
 }

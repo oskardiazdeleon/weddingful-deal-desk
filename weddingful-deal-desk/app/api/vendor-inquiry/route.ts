@@ -40,13 +40,9 @@ export async function POST(req: NextRequest) {
       // keep fallback inquiry when file persistence is unavailable
     }
 
-    try {
-      await triggerVendorLeadPhase1(inquiry);
-    } catch {
-      // non-blocking for form submit UX
-    }
+    const emailResult = await triggerVendorLeadPhase1(inquiry);
 
-    return NextResponse.json({ id: inquiry.id, accepted: true }, { status: 201 });
+    return NextResponse.json({ id: inquiry.id, accepted: true, email: emailResult }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
