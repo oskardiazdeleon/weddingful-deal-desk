@@ -7,16 +7,84 @@ import {
 export const dynamic = "force-dynamic";
 
 export default function BrandDashboardPage() {
-  const vendorLeads = getVendorInquiries().sort(
+  const realVendorLeads = getVendorInquiries().sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
-  const followups = getVendorFollowups();
-  const events = getVendorTrainingEvents().sort(
+  const realFollowups = getVendorFollowups();
+  const realEvents = getVendorTrainingEvents().sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  const started = events.filter((e) => e.event === "sample_started");
-  const completed = events.filter((e) => e.event === "sample_completed");
+  const demoVendorLeads = [
+    {
+      id: "demo-1",
+      createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+      name: "Sofia Martinez",
+      email: "sofia@oceancrestresort.com",
+      company: "Ocean Crest Resort",
+      vendorType: "Resort",
+      message: "Need after-hours inquiry coverage.",
+      status: "contacted",
+    },
+    {
+      id: "demo-2",
+      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+      name: "Daniel Kim",
+      email: "daniel@sunharborweddings.com",
+      company: "Sun Harbor Weddings",
+      vendorType: "Venue Group",
+      message: "Interested in pilot for Cancun + Cabo team.",
+      status: "demo_booked",
+    },
+  ];
+
+  const demoEvents = [
+    {
+      id: "evt-1",
+      createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+      leadId: "demo-1",
+      event: "sample_started" as const,
+      score: 78,
+      durationSec: 120,
+    },
+    {
+      id: "evt-2",
+      createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+      leadId: "demo-1",
+      event: "sample_completed" as const,
+      score: 86,
+      durationSec: 224,
+    },
+    {
+      id: "evt-3",
+      createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+      leadId: "demo-2",
+      event: "sample_completed" as const,
+      score: 82,
+      durationSec: 205,
+    },
+  ];
+
+  const demoFollowups = [
+    {
+      id: "fup-1",
+      leadId: "demo-1",
+      email: "sofia@oceancrestresort.com",
+      company: "Ocean Crest Resort",
+      step: "day2",
+      scheduledFor: new Date(Date.now() + 1000 * 60 * 60 * 18).toISOString(),
+      status: "pending",
+      subject: "Quick follow-up: ready to run your voice concierge demo?",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+
+  const vendorLeads: any[] = realVendorLeads.length ? (realVendorLeads as any[]) : (demoVendorLeads as any[]);
+  const followups: any[] = realFollowups.length ? (realFollowups as any[]) : (demoFollowups as any[]);
+  const events: any[] = realEvents.length ? (realEvents as any[]) : (demoEvents as any[]);
+
+  const started = events.filter((e: any) => e.event === "sample_started");
+  const completed = events.filter((e: any) => e.event === "sample_completed");
   const avgScore = completed.length
     ? Math.round(
         completed.reduce((sum, e) => sum + (typeof e.score === "number" ? e.score : 0), 0) /
