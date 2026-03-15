@@ -13,6 +13,34 @@ const navItems = [
   "Audit Log",
 ];
 
+const setupSteps = [
+  {
+    step: "Step 1",
+    title: "Create brand account",
+    detail: "Capture company profile, owner, regions, and operating hours.",
+  },
+  {
+    step: "Step 2",
+    title: "Provision Twilio number",
+    detail: "Assign country/area code and bind inbound webhook routing.",
+  },
+  {
+    step: "Step 3",
+    title: "Configure ElevenLabs agent",
+    detail: "Set voice profile, greeting, qualification prompts, and escalation rules.",
+  },
+  {
+    step: "Step 4",
+    title: "Run simulation + QA",
+    detail: "Validate script output, transcript quality, and lead capture fields.",
+  },
+  {
+    step: "Step 5",
+    title: "Activate follow-up automations",
+    detail: "Enable day0/day2/day5 outreach and booking-link handoff.",
+  },
+];
+
 const demoVendors = [
   {
     id: "demo-a",
@@ -48,18 +76,11 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-gray-500 font-semibold mb-1">
-              Weddingful Admin
-            </p>
+            <p className="text-xs uppercase tracking-[0.18em] text-gray-500 font-semibold mb-1">Weddingful Admin</p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Platform Control Center</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Inspiration mock for account provisioning, scripts, and call operations.
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Guide admins through setup, provisioning, and call-ops readiness.</p>
           </div>
-          <Link
-            href="/brand/dashboard"
-            className="w-full sm:w-auto text-center rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
-          >
+          <Link href="/brand/dashboard" className="w-full sm:w-auto text-center rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700">
             View Brand Dashboard
           </Link>
         </div>
@@ -70,13 +91,7 @@ export default function AdminPage() {
             <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 text-sm">
               {navItems.map((item, i) => (
                 <li key={item}>
-                  <button
-                    className={`w-full text-left rounded-lg px-3 py-2 transition ${
-                      i === 0
-                        ? "bg-rose-50 text-rose-700 font-semibold border border-rose-100"
-                        : "hover:bg-gray-50 text-gray-700"
-                    }`}
-                  >
+                  <button className={`w-full text-left rounded-lg px-3 py-2 transition ${i === 0 ? "bg-rose-50 text-rose-700 font-semibold border border-rose-100" : "hover:bg-gray-50 text-gray-700"}`}>
                     {item}
                   </button>
                 </li>
@@ -92,45 +107,25 @@ export default function AdminPage() {
               <Card title="Avg Qual Score" value={avgScore ? `${avgScore}/100` : "-"} hint="Completed sample sessions" />
             </div>
 
-            <div className="grid xl:grid-cols-2 gap-5">
-              <section className="rounded-2xl border border-gray-200 bg-white p-5">
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">Quick Provisioning</h2>
-                <p className="text-sm text-gray-500 mb-4">One-click setup flow for new brand accounts.</p>
-                <div className="grid sm:grid-cols-2 gap-3 text-sm">
-                  <Input label="Brand account" value="Ocean Crest Resort" />
-                  <Input label="Country" value="US" />
-                  <Input label="Voice profile" value="Penny - Premium" />
-                  <Input label="Routing mode" value="Sales-first" />
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700">
-                    Provision Number + Agent
-                  </button>
-                  <button className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                    Dry-run Config
-                  </button>
-                </div>
-              </section>
+            <section className="rounded-2xl border border-gray-200 bg-white p-5">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Admin Onboarding Guide</h2>
+              <p className="text-sm text-gray-500 mb-4">Use this checklist to configure each account from registration to live operations.</p>
 
-              <section className="rounded-2xl border border-gray-200 bg-white p-5">
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">Script Builder (v1)</h2>
-                <p className="text-sm text-gray-500 mb-4">Editable qualification script with guardrails.</p>
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 space-y-2">
-                  <p><strong>Greeting:</strong> "Thanks for calling brand weddings. I can help qualify your event."</p>
-                  <p><strong>Capture:</strong> date window, guests, destination, budget, contact details.</p>
-                  <p><strong>Escalation:</strong> transfer if intent=high OR event date less than 120 days.</p>
-                  <p><strong>Close:</strong> "I have shared this with the venue team. Expect a follow-up shortly."</p>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button className="rounded-full bg-gray-900 text-white px-4 py-2 text-sm font-semibold hover:bg-black">
-                    Save Draft
-                  </button>
-                  <button className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                    Run Simulation
-                  </button>
-                </div>
-              </section>
-            </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                {setupSteps.map((s) => (
+                  <div key={s.step} className="rounded-xl border border-gray-200 p-4 bg-gray-50">
+                    <p className="text-xs uppercase tracking-wide text-rose-600 font-semibold">{s.step}</p>
+                    <h3 className="font-semibold text-gray-900 mt-1">{s.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{s.detail}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700">Start Setup Wizard</button>
+                <button className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Open Provisioning Queue</button>
+              </div>
+            </section>
 
             <section className="rounded-2xl border border-gray-200 bg-white overflow-x-auto">
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -144,9 +139,7 @@ export default function AdminPage() {
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     {["Company", "Contact", "Stage", "Provisioning", "Last Activity"].map((h) => (
-                      <th key={h} className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-medium">
-                        {h}
-                      </th>
+                      <th key={h} className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-medium">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -156,9 +149,7 @@ export default function AdminPage() {
                       <td className="px-4 py-3 font-medium text-gray-900">{v.company}</td>
                       <td className="px-4 py-3 text-gray-700">{v.name}</td>
                       <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
-                          {(v.status || "new").replace("_", " ")}
-                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">{(v.status || "new").replace("_", " ")}</span>
                       </td>
                       <td className="px-4 py-3 text-gray-600">{Math.random() > 0.5 ? "Ready" : "Pending"}</td>
                       <td className="px-4 py-3 text-xs text-gray-500">{new Date(v.createdAt).toLocaleString()}</td>
@@ -180,15 +171,6 @@ function Card({ title, value, hint }: { title: string; value: string; hint: stri
       <p className="text-xs uppercase tracking-wide text-gray-500">{title}</p>
       <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
       <p className="text-xs text-gray-500 mt-1">{hint}</p>
-    </div>
-  );
-}
-
-function Input({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
-      <div className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-800">{value}</div>
     </div>
   );
 }
