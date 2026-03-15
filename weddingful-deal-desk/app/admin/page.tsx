@@ -1,174 +1,194 @@
-/**
- * Internal admin page — NOT auth-protected in MVP.
- * TODO: Add authentication (e.g. NextAuth, Clerk, or a simple shared secret middleware)
- * before deploying to production.
- */
-
-import { getCoupleLeads, getVendorInquiries } from "@/lib/db";
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import Link from "next/link";
+import { getVendorInquiries, getVendorTrainingEvents } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const leads = getCoupleLeads().sort(
+const navItems = [
+  "Overview",
+  "Accounts",
+  "Provisioning",
+  "Scripts",
+  "Call Ops",
+  "Billing",
+  "Audit Log",
+];
+
+const demoVendors = [
+  {
+    id: "demo-a",
+    createdAt: new Date(Date.now() - 1000 * 60 * 50).toISOString(),
+    name: "Sofia Martinez",
+    company: "Ocean Crest Resort",
+    status: "contacted",
+  },
+  {
+    id: "demo-b",
+    createdAt: new Date(Date.now() - 1000 * 60 * 140).toISOString(),
+    name: "Daniel Kim",
+    company: "Sun Harbor Weddings",
+    status: "demo_booked",
+  },
+];
+
+export default function AdminPage() {
+  const vendors = getVendorInquiries().sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
-  const inquiries = getVendorInquiries().sort(
+  const events = getVendorTrainingEvents().sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+
+  const completed = events.filter((e) => e.event === "sample_completed");
+  const avgScore = completed.length
+    ? Math.round(completed.reduce((s, e) => s + (e.score || 0), 0) / completed.length)
+    : 0;
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+    <main className="min-h-screen bg-[#f6f7fb] px-4 py-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Weddingful Admin</h1>
-            <p className="text-sm text-gray-400 mt-1">
-              Internal dashboard · Not publicly accessible in production
+            <p className="text-xs uppercase tracking-[0.18em] text-gray-500 font-semibold mb-1">
+              Weddingful Admin
+            </p>
+            <h1 className="text-3xl font-semibold text-gray-900">Platform Control Center</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Inspiration mock for account provisioning, scripts, and call operations.
             </p>
           </div>
-          <a href="/" className="text-sm text-rose-600 hover:underline">
-            ← Back to site
-          </a>
+          <Link
+            href="/brand/dashboard"
+            className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
+          >
+            View Brand Dashboard
+          </Link>
         </div>
 
-        {/* Stats bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          {[
-            { label: "Total couple leads", value: leads.length },
-            {
-              label: "Leads this week",
-              value: leads.filter(
-                (l) =>
-                  new Date(l.createdAt).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000
-              ).length,
-            },
-            { label: "Vendor inquiries", value: inquiries.length },
-            {
-              label: "Avg. budget",
-              value:
-                leads.length > 0
-                  ? `$${Math.round(
-                      leads.reduce((s, l) => s + l.budget, 0) / leads.length
-                    ).toLocaleString()}`
-                  : "—",
-            },
-          ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="text-2xl font-bold text-gray-900">{s.value}</div>
-              <div className="text-xs text-gray-400 mt-1">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <div className="grid lg:grid-cols-[220px_minmax(0,1fr)] gap-5">
+          <aside className="rounded-2xl border border-gray-200 bg-white p-4 h-fit lg:sticky lg:top-24">
+            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Admin Menu</p>
+            <ul className="space-y-2 text-sm">
+              {navItems.map((item, i) => (
+                <li key={item}>
+                  <button
+                    className={`w-full text-left rounded-lg px-3 py-2 transition ${
+                      i === 0
+                        ? "bg-rose-50 text-rose-700 font-semibold border border-rose-100"
+                        : "hover:bg-gray-50 text-gray-700"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
 
-        {/* Couple Leads */}
-        <section className="mb-12">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Couple Leads{" "}
-            <span className="text-sm font-normal text-gray-400">({leads.length})</span>
-          </h2>
-          {leads.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center text-gray-400 shadow-sm">
-              No leads yet. Share the site to start collecting!
+          <section className="space-y-5">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <Card title="Brand Accounts" value={String(vendors.length || demoVendors.length)} hint="Registered vendor organizations" />
+              <Card title="Active Numbers" value="12" hint="Twilio numbers provisioned" />
+              <Card title="Live Agents" value="9" hint="ElevenLabs assistants online" />
+              <Card title="Avg Qual Score" value={avgScore ? `${avgScore}/100` : "-"} hint="Completed sample sessions" />
             </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+
+            <div className="grid xl:grid-cols-2 gap-5">
+              <section className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">Quick Provisioning</h2>
+                <p className="text-sm text-gray-500 mb-4">One-click setup flow for new brand accounts.</p>
+                <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                  <Input label="Brand account" value="Ocean Crest Resort" />
+                  <Input label="Country" value="US" />
+                  <Input label="Voice profile" value="Penny - Premium" />
+                  <Input label="Routing mode" value="Sales-first" />
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700">
+                    Provision Number + Agent
+                  </button>
+                  <button className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Dry-run Config
+                  </button>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">Script Builder (v1)</h2>
+                <p className="text-sm text-gray-500 mb-4">Editable qualification script with guardrails.</p>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 space-y-2">
+                  <p><strong>Greeting:</strong> "Thanks for calling brand weddings. I can help qualify your event."</p>
+                  <p><strong>Capture:</strong> date window, guests, destination, budget, contact details.</p>
+                  <p><strong>Escalation:</strong> transfer if intent=high OR event date less than 120 days.</p>
+                  <p><strong>Close:</strong> "I have shared this with the venue team. Expect a follow-up shortly."</p>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button className="rounded-full bg-gray-900 text-white px-4 py-2 text-sm font-semibold hover:bg-black">
+                    Save Draft
+                  </button>
+                  <button className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Run Simulation
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <section className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Account Queue</h2>
+                  <p className="text-xs text-gray-500">Latest registrations and readiness status.</p>
+                </div>
+                <button className="text-sm font-semibold text-rose-600 hover:underline">Export CSV</button>
+              </div>
+              <table className="w-full text-sm min-w-[760px]">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {["Email", "Destination", "Date Window", "Budget", "Guests", "Submitted"].map(
-                      (h) => (
-                        <th
-                          key={h}
-                          className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider"
-                        >
-                          {h}
-                        </th>
-                      )
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {leads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900">{lead.email}</td>
-                      <td className="px-4 py-3 text-gray-600">{lead.destination}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
-                        {lead.weddingDateStart} – {lead.weddingDateEnd}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 font-medium">
-                        ${lead.budget.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{lead.guestCount}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
-                        {formatDate(lead.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        {/* Vendor Inquiries */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Vendor Inquiries{" "}
-            <span className="text-sm font-normal text-gray-400">({inquiries.length})</span>
-          </h2>
-          {inquiries.length === 0 ? (
-            <div className="bg-white rounded-xl p-8 text-center text-gray-400 shadow-sm">
-              No vendor inquiries yet.
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    {["Name", "Email", "Company", "Type", "Message", "Submitted"].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wider"
-                      >
+                    {["Company", "Contact", "Stage", "Provisioning", "Last Activity"].map((h) => (
+                      <th key={h} className="text-left px-4 py-3 text-xs uppercase tracking-wider text-gray-500 font-medium">
                         {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {inquiries.map((inq) => (
-                    <tr key={inq.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-900">{inq.name}</td>
-                      <td className="px-4 py-3 text-gray-600">{inq.email}</td>
-                      <td className="px-4 py-3 text-gray-600">{inq.company}</td>
+                  {(vendors.length ? vendors : demoVendors).slice(0, 8).map((v: any) => (
+                    <tr key={v.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{v.company}</td>
+                      <td className="px-4 py-3 text-gray-700">{v.name}</td>
                       <td className="px-4 py-3">
-                        <span className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full">
-                          {inq.vendorType}
+                        <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+                          {(v.status || "new").replace("_", " ")}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-400 max-w-xs truncate">{inq.message || "—"}</td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
-                        {formatDate(inq.createdAt)}
-                      </td>
+                      <td className="px-4 py-3 text-gray-600">{Math.random() > 0.5 ? "Ready" : "Pending"}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{new Date(v.createdAt).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
-        </section>
+            </section>
+          </section>
+        </div>
       </div>
     </main>
+  );
+}
+
+function Card({ title, value, hint }: { title: string; value: string; hint: string }) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4">
+      <p className="text-xs uppercase tracking-wide text-gray-500">{title}</p>
+      <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
+      <p className="text-xs text-gray-500 mt-1">{hint}</p>
+    </div>
+  );
+}
+
+function Input({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <div className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-800">{value}</div>
+    </div>
   );
 }
