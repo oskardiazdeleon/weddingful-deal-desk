@@ -205,6 +205,82 @@ export const b2bArticles: B2BArticle[] = [
       }
     ]
   }
+  ,{
+    slug: "wedding-venue-missed-call-cost-model",
+    tag: "Revenue Model",
+    title: "Wedding Venue Missed-Call Cost Model: Estimate Lost Revenue in 15 Minutes",
+    description: "A practical framework to estimate how many booked weddings are lost from unanswered inquiries.",
+    updated: "March 2026",
+    audience: "Venue revenue and operations teams",
+    intro: "Missed-call cost modeling helps teams justify staffing and AI voice investments with clear revenue impact.",
+    sections: [
+      {
+        heading: "The minimum model inputs",
+        paragraphs: [
+          "You can build a decision-grade model from five inputs: monthly call volume, missed-call rate, qualification rate, close rate, and average booking value.",
+          "The goal is not perfect forecasting; it is directional clarity for investment decisions."
+        ],
+        bullets: [
+          "Monthly wedding inquiry calls",
+          "Missed-call percentage",
+          "Qualified lead rate",
+          "Qualified-to-booked conversion",
+          "Average booking value"
+        ]
+      },
+      {
+        heading: "How teams use this model",
+        paragraphs: [
+          "Run baseline, improved, and aggressive scenarios to compare upside from faster response and better qualification.",
+          "Use the model in monthly ops reviews and pilot go/no-go decisions."
+        ],
+        bullets: [
+          "Baseline scenario",
+          "+10% response improvement",
+          "+20% qualification improvement",
+          "Combined upside case"
+        ]
+      }
+    ]
+  }
+  ,{
+    slug: "hotel-group-standardize-wedding-inquiry-ops",
+    tag: "Enterprise Ops",
+    title: "How Hotel Groups Standardize Wedding Inquiry Operations Across Properties",
+    description: "A blueprint for multi-property teams to enforce consistent wedding inquiry handling and reporting.",
+    updated: "March 2026",
+    audience: "Hotel group commercial and operations leaders",
+    intro: "Multi-property inconsistency is expensive. Standardized inquiry workflows improve conversion and forecasting accuracy.",
+    sections: [
+      {
+        heading: "Where standardization breaks",
+        paragraphs: [
+          "Different properties often use different scripts, SLAs, and handoff rules. This creates uneven lead quality and unreliable reporting.",
+          "Central standards with local flexibility usually perform best."
+        ],
+        bullets: [
+          "Inconsistent scripts",
+          "Variable response times",
+          "No shared qualification taxonomy",
+          "Fragmented reporting"
+        ]
+      },
+      {
+        heading: "30-day standardization rollout",
+        paragraphs: [
+          "Start with one reference property, validate outcomes, then roll standards to the next cluster.",
+          "Publish weekly scorecards by property to enforce accountability."
+        ],
+        bullets: [
+          "Week 1: script + SLA lock",
+          "Week 2: pilot in one property",
+          "Week 3: cluster rollout",
+          "Week 4: KPI governance"
+        ]
+      }
+    ]
+  }
+
 ];
 
 export function getArticle(slug: string) {
