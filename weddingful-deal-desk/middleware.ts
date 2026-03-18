@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const ADMIN_USER = process.env.ADMIN_USERNAME;
 const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+const ALLOW_INSECURE_ADMIN = process.env.ALLOW_INSECURE_ADMIN === "true";
 
 function unauthorized() {
   return new NextResponse("Authentication required", {
@@ -17,9 +18,17 @@ export function middleware(req: NextRequest) {
   if (!protectedPath) return NextResponse.next();
 
   if (!ADMIN_USER || !ADMIN_PASS) {
-    return new NextResponse("Admin auth is not configured. Set ADMIN_USERNAME and ADMIN_PASSWORD.", {
-      status: 503,
-    });
+    const isDev = process.env.NODE_ENV !== "production";
+    if (ALLOW_INSECURE_ADMIN || isDev) {
+      return NextResponse.next();
+    }
+
+    return new NextResponse(
+      "Admin auth is not configured. Set ADMIN_USERNAME and ADMIN_PASSWORD (or ALLOW_INSECURE_ADMIN=true for controlled environments).",
+      {
+        status: 503,
+      }
+    );
   }
 
   const auth = req.headers.get("authorization");
