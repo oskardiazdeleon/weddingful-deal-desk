@@ -1,6 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function SiteFooter() {
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/brand")) {
+    return null;
+  }
+
   return (
     <footer className="mt-16 border-t border-gray-100 py-10 px-6 text-sm text-gray-500">
       <div className="mx-auto max-w-6xl flex flex-col md:flex-row justify-between gap-4">
