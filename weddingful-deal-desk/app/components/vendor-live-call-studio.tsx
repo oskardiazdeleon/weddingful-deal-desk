@@ -307,15 +307,21 @@ export function VendorLiveCallStudio({
 
               <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
                 {signedCallUrl ? (
-                  <iframe
-                    src={signedCallUrl}
-                    title="ElevenLabs Live Call"
-                    className="w-full h-[420px] rounded-lg border border-gray-200 bg-white"
-                    allow="microphone; autoplay"
-                  />
+                  <div className="h-[220px] flex flex-col items-center justify-center text-center">
+                    <p className="text-sm text-gray-600 mb-3">Call session initialized successfully.</p>
+                    <a
+                      href={signedCallUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700"
+                    >
+                      Open Live Call
+                    </a>
+                    <p className="text-xs text-gray-500 mt-3">Opens the secure ElevenLabs call session in a new tab.</p>
+                  </div>
                 ) : (
                   <div className="h-[220px] flex items-center justify-center text-sm text-gray-500">
-                    Click <strong className="mx-1">Start Call</strong> to initialize the in-page ElevenLabs call panel.
+                    Click <strong className="mx-1">Start Call</strong> to initialize your secure voice session.
                   </div>
                 )}
               </div>
@@ -326,7 +332,7 @@ export function VendorLiveCallStudio({
                   disabled={callStarting}
                   className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50"
                 >
-                  {callStarting ? "Starting call..." : signedCallUrl ? "Restart Call Session" : "Start Call"}
+                  {callStarting ? "Starting call..." : signedCallUrl ? "Refresh Call Session" : "Start Call"}
                 </button>
                 <p className="text-xs text-gray-500">Browser may ask for microphone permission.</p>
               </div>
