@@ -88,6 +88,17 @@ const scenarioMap: Record<string, ScenarioConfig> = {
   },
 };
 
+function formatError(err: unknown): string {
+  if (!err) return "Unknown error";
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
 export function VendorLiveCallStudio({ company, leadId, scenario }: { company: string; leadId: string; scenario: string }) {
   const [activeScenarioId, setActiveScenarioId] = useState<string>(scenario in scenarioMap ? scenario : "new-inquiry");
   const config = useMemo(() => scenarioMap[activeScenarioId] || scenarioMap["new-inquiry"], [activeScenarioId]);
@@ -217,7 +228,8 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
 
       throw new Error("Widget loaded but no callable session method was found.");
     } catch (e: any) {
-      setCallMsg(e?.message || "Unable to start call. Check mic permissions and ElevenLabs API key.");
+      const details = formatError(e);
+      setCallMsg(`Unable to start call: ${details}`);
     } finally {
       setCallStarting(false);
     }
@@ -258,8 +270,7 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
           : "Snapshot saved."
       );
     } catch (e: any) {
-      const msg = e?.message || "Request failed";
-      setSendMsg(msg);
+      setSendMsg(formatError(e));
     } finally {
       setSending(false);
     }
@@ -268,6 +279,18 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-6">
       <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="afterInteractive" onLoad={() => setWidgetReady(true)} />
+      <style jsx global>{`
+        elevenlabs-convai-launcher,
+        elevenlabs-launcher,
+        [data-elevenlabs-launcher],
+        [id*="elevenlabs"][id*="launcher"],
+        [class*="elevenlabs"][class*="launcher"] {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          opacity: 0 !important;
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
@@ -327,7 +350,7 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
               </div>
 
               <div ref={widgetHostRef} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <ElevenLabsConvai agent-id={DEFAULT_AGENT_ID} />
+                <ElevenLabsConvai agent-id={DEFAULT_AGENT_ID} variant="embedded" mode="call" />
               </div>
 
               <div className="mt-3 flex items-center gap-2">
