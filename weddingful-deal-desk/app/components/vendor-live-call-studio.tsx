@@ -192,7 +192,7 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
 
       const sessionData = await sessionRes.json().catch(() => ({}));
       if (!sessionRes.ok) {
-        throw new Error(sessionData?.error || "Could not initialize ElevenLabs session");
+        throw new Error(formatError(sessionData?.error || sessionData || "Could not initialize ElevenLabs session"));
       }
 
       const signedUrl = sessionData?.signedUrl;
@@ -206,13 +206,17 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
 
       if (typeof widget.startSession === "function") {
         if (signedUrl) {
-          await widget.startSession({
-            signedUrl,
-            dynamicVariables: {
-              scenario: config.name,
-              company,
-            },
-          });
+          try {
+            await widget.startSession(signedUrl);
+          } catch {
+            await widget.startSession({
+              signedUrl,
+              dynamicVariables: {
+                scenario: config.name,
+                company,
+              },
+            });
+          }
         } else {
           await widget.startSession();
         }

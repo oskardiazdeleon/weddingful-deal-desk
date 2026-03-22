@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function toErrorString(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (!value) return "Unknown error";
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const DEFAULT_AGENT_ID = process.env.ELEVENLABS_AGENT_ID || "agent_4801kf4jnhneet6tscp3zt0f76er";
 
@@ -31,7 +41,9 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: data?.detail || data?.message || "Failed to create signed URL" },
+        {
+          error: toErrorString(data?.detail || data?.message || data || "Failed to create signed URL"),
+        },
         { status: res.status }
       );
     }
