@@ -8,9 +8,13 @@ import { SiteFooter } from "./components/site-footer";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://weddingful.com"),
   title: "Weddingful — Your Destination Wedding, Optimized",
   description:
     "Free savings audit for destination wedding couples. Concierge planning service and qualified lead program for venues and planners.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

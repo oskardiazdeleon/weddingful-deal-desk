@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   getVendorFollowups,
@@ -8,6 +9,13 @@ import {
 import AdminSetupWizard from "@/app/components/admin-setup-wizard";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 const navItems = [
   { label: "Overview", id: "overview" },
