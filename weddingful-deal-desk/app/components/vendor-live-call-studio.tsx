@@ -187,11 +187,9 @@ export function VendorLiveCallStudio({
                 dynamicVariables: { scenario: config.name, company },
               });
             } catch {
-              try {
-                await starter.call(widget, signedCallUrl);
-              } catch {
-                await starter.call(widget);
-              }
+              // Important: never pass raw wss:// string argument,
+              // some widget versions may treat it like a browser URL navigation.
+              await starter.call(widget);
             }
             setCallMsg("Call connected in-page. You can start talking now.");
             return;
