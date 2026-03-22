@@ -198,7 +198,14 @@ export function VendorLiveCallStudio({
           await new Promise((r) => setTimeout(r, 250));
         }
 
-        setCallMsg("Session created, but in-page starter was unavailable. Refresh and retry.");
+        const launcher = document.querySelector("button[aria-label*='Start a call'], button[aria-label*='call'], elevenlabs-convai-launcher button") as HTMLButtonElement | null;
+        if (launcher) {
+          launcher.click();
+          setCallMsg("Session ready. Triggered ElevenLabs launcher fallback — complete mic prompt to hear audio.");
+          return;
+        }
+
+        setCallMsg("Session created, but in-page starter was unavailable. Use the bottom-right call launcher to begin audio.");
       } catch (e) {
         setCallMsg(`Unable to attach session: ${formatError(e)}`);
       }
