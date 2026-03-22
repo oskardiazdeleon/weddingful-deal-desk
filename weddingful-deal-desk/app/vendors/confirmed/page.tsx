@@ -56,7 +56,7 @@ export default async function VendorConfirmedPage({ searchParams }: Props) {
               Demo the AI voice flow with wedding-specific scenarios, real-time transcript, and snapshot export.
             </p>
             <Link
-              href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=new-inquiry`}
+              href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=availability-check`}
               className="inline-flex rounded-full bg-rose-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-rose-700"
             >
               Start Live Demo
@@ -83,12 +83,6 @@ export default async function VendorConfirmedPage({ searchParams }: Props) {
         </div>
 
         <div className="flex flex-wrap justify-center gap-3">
-          <Link
-            href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=availability-check`}
-            className="rounded-full bg-rose-600 text-white px-6 py-3 font-semibold hover:bg-rose-700"
-          >
-            Enter Live Call Studio
-          </Link>
           <a
             href="mailto:hello@weddingful.com?subject=Weddingful%20Vendor%20Pilot%20Onboarding"
             className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"
