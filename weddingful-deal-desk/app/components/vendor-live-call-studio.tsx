@@ -88,22 +88,12 @@ const scenarioMap: Record<string, ScenarioConfig> = {
   },
 };
 
-const callerReplies = [
-  "Hi! We’re targeting a beach wedding in Cancun next spring.",
-  "We’re expecting around 90 guests and want options with weekend availability.",
-  "Budget is likely between 40k and 60k, depending on package details.",
-  "Can we schedule a consultation this week?",
-];
-
 export function VendorLiveCallStudio({ company, leadId, scenario }: { company: string; leadId: string; scenario: string }) {
   const [activeScenarioId, setActiveScenarioId] = useState<string>(scenario in scenarioMap ? scenario : "new-inquiry");
   const config = useMemo(() => scenarioMap[activeScenarioId] || scenarioMap["new-inquiry"], [activeScenarioId]);
 
   const [transcript, setTranscript] = useState<{ speaker: string; text: string }[]>([]);
-  const [replyIndex, setReplyIndex] = useState(0);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState("");
   const [sending, setSending] = useState(false);
   const [sendMsg, setSendMsg] = useState("");
   const [widgetReady, setWidgetReady] = useState(false);
@@ -233,19 +223,14 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
     }
   }
 
-  async function saveSnapshot(sendEmailToLead = false) {
+  async function saveSnapshot(sendEmailToLead = true) {
     if (!leadId) {
-      setSaveMsg("Missing lead id for saving.");
+      setSendMsg("Missing lead id for saving.");
       return;
     }
 
-    if (sendEmailToLead) {
-      setSending(true);
-      setSendMsg("");
-    } else {
-      setSaving(true);
-      setSaveMsg("");
-    }
+    setSending(true);
+    setSendMsg("");
 
     try {
       const res = await fetch("/api/vendor-demo-summary", {
@@ -265,17 +250,17 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
 
       await refreshSnapshots();
 
-      if (sendEmailToLead) {
-        setSendMsg(data?.email?.ok ? "Demo summary emailed to lead." : `Saved, but email failed: ${data?.email?.reason || "unknown"}`);
-      } else {
-        setSaveMsg("Snapshot saved.");
-      }
+      setSendMsg(
+        sendEmailToLead
+          ? data?.email?.ok
+            ? "Demo summary emailed to lead."
+            : `Saved, but email failed: ${data?.email?.reason || "unknown"}`
+          : "Snapshot saved."
+      );
     } catch (e: any) {
       const msg = e?.message || "Request failed";
-      if (sendEmailToLead) setSendMsg(msg);
-      else setSaveMsg(msg);
+      setSendMsg(msg);
     } finally {
-      setSaving(false);
       setSending(false);
     }
   }
@@ -363,41 +348,20 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
-                  onClick={() => {
-                    const next = callerReplies[replyIndex % callerReplies.length];
-                    setTranscript((prev) => [...prev, { speaker: "Caller", text: next }]);
-                    setReplyIndex((i) => i + 1);
-                  }}
-                  className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
-                >
-                  Simulate Caller
-                </button>
-                <button
-                  onClick={() => setTranscript((prev) => [...prev, { speaker: "AI Assistant", text: "Thanks — I captured that and routed your request for same-day follow-up." }])}
-                  className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                  Simulate AI Reply
-                </button>
-                <button
-                  onClick={() => saveSnapshot(false)}
-                  className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Snapshot"}
-                </button>
-                <button
                   onClick={() => saveSnapshot(true)}
                   className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60"
                   disabled={sending}
                 >
-                  {sending ? "Sending..." : "Email Summary"}
+                  {sending ? "Sending..." : "Save + Email Summary"}
                 </button>
-                <Link href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                  Export PDF
+                <Link
+                  href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`}
+                  className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                  View / Export Summary
                 </Link>
               </div>
-              {saveMsg ? <p className="text-xs text-gray-500 mt-2">{saveMsg}</p> : null}
-              {sendMsg ? <p className="text-xs text-gray-500 mt-1">{sendMsg}</p> : null}
+              {sendMsg ? <p className="text-xs text-gray-500 mt-2">{sendMsg}</p> : null}
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
