@@ -240,13 +240,21 @@ export function VendorTrainingWorkspace({ company, leadId }: { company: string; 
                         <span>{scenario.duration}</span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => startScenario(scenario)}
-                      className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60"
-                      disabled={live}
-                    >
-                      {selectedScenario.id === scenario.id && live ? "Running…" : "Start"}
-                    </button>
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/vendors/live-demo?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}&scenario=${encodeURIComponent(scenario.id)}`}
+                        className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
+                      >
+                        Open Live Call Studio
+                      </Link>
+                      <button
+                        onClick={() => startScenario(scenario)}
+                        className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                        disabled={live}
+                      >
+                        {selectedScenario.id === scenario.id && live ? "Running…" : "Quick Run"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
