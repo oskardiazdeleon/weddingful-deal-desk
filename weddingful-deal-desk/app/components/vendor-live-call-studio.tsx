@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Conversation } from "@elevenlabs/client";
 
 type CoachingItem = { title: string; detail: string };
 type ScenarioConfig = {
@@ -105,7 +106,9 @@ export function VendorLiveCallStudio({
   const [sendMsg, setSendMsg] = useState("");
   const [callStarting, setCallStarting] = useState(false);
   const [callMsg, setCallMsg] = useState("");
-  const [signedCallUrl, setSignedCallUrl] = useState("");
+  const [callStatus, setCallStatus] = useState<"idle" | "connecting" | "connected" | "ended" | "error">("idle");
+  const [callMode, setCallMode] = useState<"listening" | "speaking" | "unknown">("unknown");
+  const conversationRef = useRef<Conversation | null>(null);
 
   useEffect(() => {
     setTranscript([
@@ -135,9 +138,14 @@ export function VendorLiveCallStudio({
   async function startCall() {
     setCallStarting(true);
     setCallMsg("");
-    setSignedCallUrl("");
+    setCallStatus("connecting");
 
     try {
+      if (conversationRef.current) {
+        await conversationRef.current.endSession();
+        conversationRef.current = null;
+      }
+
       const sessionRes = await fetch("/api/elevenlabs/start-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,14 +158,63 @@ export function VendorLiveCallStudio({
       const signedUrl = sessionData?.signedUrl;
       if (!signedUrl || typeof signedUrl !== "string") throw new Error("No signed session URL returned from ElevenLabs API.");
 
-      setSignedCallUrl(signedUrl);
-      setCallMsg("Session ready. Open secure call in a clean call window.");
+      const conversation = await Conversation.startSession({
+        signedUrl,
+        dynamicVariables: {
+          scenario: config.name,
+          company,
+        },
+        onConnect: () => {
+          setCallStatus("connected");
+          setCallMsg("Call connected. You should now hear audio.");
+          setTranscript((prev) => [...prev, { speaker: "System", text: "Voice session connected." }]);
+        },
+        onDisconnect: () => {
+          setCallStatus("ended");
+          setCallMsg("Call ended.");
+        },
+        onModeChange: ({ mode }) => setCallMode(mode ?? "unknown"),
+        onError: (message, context) => {
+          setCallStatus("error");
+          setCallMsg(`Call error: ${formatError(message || context)}`);
+        },
+        onMessage: ({ message, role }) => {
+          const speaker = role === "agent" ? "AI Assistant" : "Caller";
+          if (message?.trim()) setTranscript((prev) => [...prev, { speaker, text: message }]);
+        },
+      });
+
+      conversationRef.current = conversation;
+      setCallMsg("Connecting to voice session...");
     } catch (e) {
+      setCallStatus("error");
       setCallMsg(`Unable to start call: ${formatError(e)}`);
     } finally {
       setCallStarting(false);
     }
   }
+
+  async function endCall() {
+    try {
+      if (conversationRef.current) {
+        await conversationRef.current.endSession();
+        conversationRef.current = null;
+      }
+      setCallStatus("ended");
+      setCallMsg("Call ended.");
+    } catch (e) {
+      setCallMsg(`Unable to end call: ${formatError(e)}`);
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (conversationRef.current) {
+        conversationRef.current.endSession().catch(() => {});
+        conversationRef.current = null;
+      }
+    };
+  }, []);
 
   async function saveSnapshot() {
     if (!leadId) return setSendMsg("Missing lead id for saving.");
@@ -240,17 +297,18 @@ export function VendorLiveCallStudio({
             <p className="text-sm text-gray-500 mb-4">Voice session for {config.name}</p>
 
             <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-gray-50 p-4 mb-4">
-              <p className="text-sm text-gray-600">Start call to generate a secure ElevenLabs session URL.</p>
-              {signedCallUrl ? (
-                <a href={signedCallUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700">
-                  Open Secure Call
-                </a>
-              ) : null}
+              <p className="text-sm text-gray-600">Start call to connect microphone + speaker directly in this page.</p>
+              <p className="text-xs text-gray-500 mt-2">Status: {callStatus} · Mode: {callMode}</p>
             </div>
 
-            <button onClick={startCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-6 py-2.5 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
-              {callStarting ? "Starting call..." : signedCallUrl ? "Refresh Session" : "Start Call"}
-            </button>
+            <div className="flex items-center justify-center gap-2">
+              <button onClick={startCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-6 py-2.5 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
+                {callStarting ? "Starting call..." : callStatus === "connected" ? "Reconnect Call" : "Start Call"}
+              </button>
+              <button onClick={endCall} className="rounded-full border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                End Call
+              </button>
+            </div>
             {callMsg ? <p className="text-xs text-gray-500 mt-3 max-w-md">{callMsg}</p> : null}
 
             <div className="mt-6 flex flex-wrap justify-center gap-2">
