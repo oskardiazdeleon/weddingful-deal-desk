@@ -84,11 +84,17 @@ export default async function VendorConfirmedPage({ searchParams }: Props) {
 
         <div className="flex flex-wrap justify-center gap-3">
           <Link
-            href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=new-inquiry`}
+            href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=availability-check`}
             className="rounded-full bg-rose-600 text-white px-6 py-3 font-semibold hover:bg-rose-700"
           >
             Enter Live Call Studio
           </Link>
+          <a
+            href="mailto:hello@weddingful.co?subject=Weddingful%20Vendor%20Pilot%20Onboarding"
+            className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"
+          >
+            Contact Onboarding Team
+          </a>
           <Link
             href="/vendors"
             className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"

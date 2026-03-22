@@ -121,17 +121,26 @@ export default function VendorsPage() {
         </div>
       </section>
 
-      {/* Stats / proof */}
+      {/* Program outcomes focus */}
       <section className="max-w-4xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-3 gap-8 text-center">
+        <div className="grid md:grid-cols-3 gap-4 text-left">
           {[
-            { stat: "87%", label: "of our leads convert to paid inquiries" },
-            { stat: "$42k", label: "average couple budget in our network" },
-            { stat: "12+", label: "destination markets we operate in" },
-          ].map((s) => (
-            <div key={s.stat}>
-              <div className="text-4xl font-bold text-rose-600 mb-1">{s.stat}</div>
-              <p className="text-sm text-gray-500">{s.label}</p>
+            {
+              title: "Capture missed opportunities",
+              desc: "Use 24/7 voice handling so after-hours inquiries are captured and routed instead of lost.",
+            },
+            {
+              title: "Standardize qualification",
+              desc: "Collect wedding date, guest count, destination, and budget consistently on every call.",
+            },
+            {
+              title: "Speed up sales follow-up",
+              desc: "Deliver structured call summaries so your team can prioritize high-intent couples fast.",
+            },
+          ].map((item) => (
+            <div key={item.title} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <p className="font-semibold text-gray-900 mb-2">{item.title}</p>
+              <p className="text-sm text-gray-600">{item.desc}</p>
             </div>
           ))}
         </div>
@@ -169,8 +178,8 @@ export default function VendorsPage() {
               <a href="#vendor-form" className="rounded-full bg-rose-600 text-white px-5 py-2.5 font-semibold hover:bg-rose-700">
                 Join Pilot Waitlist
               </a>
-              <a href="/brand/dashboard" className="rounded-full border border-rose-300 px-4 py-2 text-rose-700 text-sm font-medium hover:bg-white">
-                Open Brand Dashboard
+              <a href="/vendors/live-demo?lead=demo&company=Demo&scenario=availability-check" className="rounded-full border border-rose-300 px-4 py-2 text-rose-700 text-sm font-medium hover:bg-white">
+                Run Live Demo
               </a>
               <span className="rounded-full border border-rose-300 px-4 py-2 text-rose-700 text-sm font-medium">
                 Starting at $299/mo

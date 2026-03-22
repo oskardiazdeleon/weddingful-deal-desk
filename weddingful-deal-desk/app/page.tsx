@@ -22,8 +22,8 @@ export default function HomePage() {
           <Link href="/vendors#vendor-form" className="bg-rose-600 text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-rose-700">
             Start Vendor Pilot
           </Link>
-          <Link href="/brand/dashboard" className="border border-rose-600 text-rose-600 text-lg font-semibold px-8 py-3 rounded-full hover:bg-rose-50">
-            View Brand Dashboard
+          <Link href="/vendors/live-demo?lead=demo&company=Demo&scenario=availability-check" className="border border-rose-600 text-rose-600 text-lg font-semibold px-8 py-3 rounded-full hover:bg-rose-50">
+            Run Live Demo
           </Link>
         </div>
 
@@ -74,6 +74,24 @@ export default function HomePage() {
               </ul>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-6 py-14">
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-8 md:p-10 text-center">
+          <p className="text-xs uppercase tracking-[0.16em] text-rose-700 font-semibold mb-2">Vendor Pilot Funnel</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">See it live, then launch your pilot.</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+            1) Run the live voice demo. 2) Submit your vendor profile. 3) Book onboarding so we can configure your wedding program workflow.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/vendors/live-demo?lead=demo&company=Demo&scenario=availability-check" className="rounded-full bg-rose-600 text-white px-6 py-3 font-semibold hover:bg-rose-700">
+              Open Live Demo
+            </Link>
+            <Link href="/vendors#vendor-form" className="rounded-full border border-rose-300 px-6 py-3 font-semibold text-rose-700 hover:bg-white">
+              Join Vendor Pilot
+            </Link>
+          </div>
         </div>
       </section>
 
