@@ -96,7 +96,8 @@ const callerReplies = [
 ];
 
 export function VendorLiveCallStudio({ company, leadId, scenario }: { company: string; leadId: string; scenario: string }) {
-  const config = useMemo(() => scenarioMap[scenario] || scenarioMap["new-inquiry"], [scenario]);
+  const [activeScenarioId, setActiveScenarioId] = useState<string>(scenario in scenarioMap ? scenario : "new-inquiry");
+  const config = useMemo(() => scenarioMap[activeScenarioId] || scenarioMap["new-inquiry"], [activeScenarioId]);
 
   const [transcript, setTranscript] = useState<{ speaker: string; text: string }[]>([]);
   const [replyIndex, setReplyIndex] = useState(0);
@@ -239,6 +240,25 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
           <Link href={`/vendors/training-dashboard?lead=${encodeURIComponent(leadId)}`} className="text-sm font-semibold text-gray-700 hover:text-rose-600">
             ← Back
           </Link>
+        </div>
+
+        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3">
+          <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Scenario Switcher</p>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(scenarioMap).map(([id, s]) => (
+              <button
+                key={id}
+                onClick={() => setActiveScenarioId(id)}
+                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                  activeScenarioId === id
+                    ? "bg-rose-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-[300px_minmax(0,1fr)] gap-4">
