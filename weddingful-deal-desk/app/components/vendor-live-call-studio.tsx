@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Script from "next/script";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CoachingItem = {
   title: string;
@@ -26,7 +25,6 @@ type Snapshot = {
   transcript: string[];
 };
 
-const ElevenLabsConvai = "elevenlabs-convai" as any;
 const DEFAULT_AGENT_ID = "agent_4801kf4jnhneet6tscp3zt0f76er";
 
 const scenarioMap: Record<string, ScenarioConfig> = {
@@ -107,10 +105,9 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [sending, setSending] = useState(false);
   const [sendMsg, setSendMsg] = useState("");
-  const [widgetReady, setWidgetReady] = useState(false);
   const [callStarting, setCallStarting] = useState(false);
   const [callMsg, setCallMsg] = useState("");
-  const widgetHostRef = useRef<any>(null);
+  const [signedCallUrl, setSignedCallUrl] = useState("");
 
   useEffect(() => {
     setTranscript([
@@ -134,38 +131,6 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
     refreshSnapshots();
   }, [leadId]);
 
-  useEffect(() => {
-    const removeFloating = () => {
-      const inlineHost = widgetHostRef.current as HTMLElement | null;
-
-      const candidates = Array.from(
-        document.querySelectorAll(
-          "elevenlabs-convai-launcher, elevenlabs-convai-bubble, [data-elevenlabs-launcher], [id*='elevenlabs-launcher'], [class*='elevenlabs-launcher'], iframe[src*='elevenlabs.io']"
-        )
-      );
-
-      for (const node of candidates) {
-        if (!inlineHost) continue;
-        if (inlineHost.contains(node)) continue;
-
-        const el = node as HTMLElement;
-        const style = window.getComputedStyle(el);
-        const isFixed = style.position === "fixed" || style.position === "sticky";
-        if (isFixed || node.tagName.toLowerCase() !== "elevenlabs-convai") {
-          el.remove();
-        }
-      }
-    };
-
-    const id = window.setTimeout(removeFloating, 800);
-    const observer = new MutationObserver(() => removeFloating());
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      window.clearTimeout(id);
-      observer.disconnect();
-    };
-  }, [widgetReady]);
 
   const score = useMemo(() => {
     const captured = transcript.filter((x) => x.speaker === "Caller").length;
@@ -196,41 +161,12 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
       }
 
       const signedUrl = sessionData?.signedUrl;
-
-      const host = widgetHostRef.current as any;
-      const widget = host?.querySelector?.("elevenlabs-convai");
-
-      if (!widget) {
-        throw new Error("Voice widget not loaded yet. Try again in a second.");
+      if (!signedUrl || typeof signedUrl !== "string") {
+        throw new Error("No signed call URL returned from ElevenLabs API.");
       }
 
-      if (typeof widget.startSession === "function") {
-        if (signedUrl) {
-          try {
-            await widget.startSession(signedUrl);
-          } catch {
-            await widget.startSession({
-              signedUrl,
-              dynamicVariables: {
-                scenario: config.name,
-                company,
-              },
-            });
-          }
-        } else {
-          await widget.startSession();
-        }
-        setCallMsg("Call started through ElevenLabs API + session bridge.");
-        return;
-      }
-
-      if (typeof widget.startCall === "function") {
-        await widget.startCall();
-        setCallMsg("Call started through ElevenLabs API.");
-        return;
-      }
-
-      throw new Error("Widget loaded but no callable session method was found.");
+      setSignedCallUrl(signedUrl);
+      setCallMsg("Call session ready. Use the in-page call panel below.");
     } catch (e: any) {
       const details = formatError(e);
       setCallMsg(`Unable to start call: ${details}`);
@@ -282,19 +218,6 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-6">
-      <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="afterInteractive" onLoad={() => setWidgetReady(true)} />
-      <style jsx global>{`
-        elevenlabs-convai-launcher,
-        elevenlabs-launcher,
-        [data-elevenlabs-launcher],
-        [id*="elevenlabs"][id*="launcher"],
-        [class*="elevenlabs"][class*="launcher"] {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-          opacity: 0 !important;
-        }
-      `}</style>
       <div className="max-w-7xl mx-auto">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
@@ -348,24 +271,35 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Voice Agent Session</h2>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${widgetReady ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                  {widgetReady ? "ElevenLabs connected" : "Connecting ElevenLabs..."}
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${signedCallUrl ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                  {signedCallUrl ? "Call panel ready" : "Session not started"}
                 </span>
               </div>
 
-              <div ref={widgetHostRef} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <ElevenLabsConvai agent-id={DEFAULT_AGENT_ID} variant="embedded" mode="call" />
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                {signedCallUrl ? (
+                  <iframe
+                    src={signedCallUrl}
+                    title="ElevenLabs Live Call"
+                    className="w-full h-[420px] rounded-lg border border-gray-200 bg-white"
+                    allow="microphone; autoplay"
+                  />
+                ) : (
+                  <div className="h-[220px] flex items-center justify-center text-sm text-gray-500">
+                    Click <strong className="mx-1">Start Call</strong> to initialize the in-page ElevenLabs call panel.
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 flex items-center gap-2">
                 <button
                   onClick={startCall}
-                  disabled={!widgetReady || callStarting}
+                  disabled={callStarting}
                   className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50"
                 >
-                  {callStarting ? "Starting call..." : "Start Call"}
+                  {callStarting ? "Starting call..." : signedCallUrl ? "Restart Call Session" : "Start Call"}
                 </button>
-                <p className="text-xs text-gray-500">You may be prompted for microphone permissions.</p>
+                <p className="text-xs text-gray-500">Browser may ask for microphone permission.</p>
               </div>
               {callMsg ? <p className="text-xs text-gray-500 mt-2">{callMsg}</p> : null}
 
