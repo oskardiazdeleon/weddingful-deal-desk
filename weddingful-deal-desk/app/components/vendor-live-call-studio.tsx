@@ -280,6 +280,12 @@ export function VendorLiveCallStudio({
               >
                 {sending ? "Sending…" : "Email Demo Summary"}
               </button>
+              <Link
+                href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`}
+                className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Export PDF Summary
+              </Link>
             </div>
             {saveMsg ? <p className="text-xs text-gray-500 mt-2">{saveMsg}</p> : null}
             {sendMsg ? <p className="text-xs text-gray-500 mt-1">{sendMsg}</p> : null}
