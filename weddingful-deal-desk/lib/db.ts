@@ -86,6 +86,7 @@ export interface VendorInquiry {
 const VENDOR_FILE = path.join(DATA_DIR, "vendor-inquiries.json");
 const VENDOR_FOLLOWUPS_FILE = path.join(DATA_DIR, "vendor-followups.json");
 const TRAINING_EVENTS_FILE = path.join(DATA_DIR, "vendor-training-events.json");
+const VENDOR_DEMO_SNAPSHOTS_FILE = path.join(DATA_DIR, "vendor-demo-snapshots.json");
 
 export function getVendorInquiries(): VendorInquiry[] {
   return readJSON<VendorInquiry>(VENDOR_FILE);
@@ -137,6 +138,36 @@ export function saveVendorTrainingEvent(
   events.push(item);
   writeJSON(TRAINING_EVENTS_FILE, events);
   return item;
+}
+
+// ── Vendor Demo Snapshots ───────────────────────────────────────────────────
+export interface VendorDemoSnapshot {
+  id: string;
+  createdAt: string;
+  leadId: string;
+  scenario: string;
+  score: number;
+  transcript: string[];
+}
+
+export function getVendorDemoSnapshots(leadId?: string): VendorDemoSnapshot[] {
+  const items = readJSON<VendorDemoSnapshot>(VENDOR_DEMO_SNAPSHOTS_FILE);
+  if (!leadId) return items;
+  return items.filter((x) => x.leadId === leadId);
+}
+
+export function saveVendorDemoSnapshot(
+  item: Omit<VendorDemoSnapshot, "id" | "createdAt">
+): VendorDemoSnapshot {
+  const all = getVendorDemoSnapshots();
+  const created: VendorDemoSnapshot = {
+    ...item,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+  };
+  all.push(created);
+  writeJSON(VENDOR_DEMO_SNAPSHOTS_FILE, all);
+  return created;
 }
 
 // ── Vendor Follow-up Queue ──────────────────────────────────────────────────
