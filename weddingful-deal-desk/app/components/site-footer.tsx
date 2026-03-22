@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 export function SiteFooter() {
   const pathname = usePathname();
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/brand")) {
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/brand") ||
+    pathname?.startsWith("/vendors/live-demo")
+  ) {
     return null;
   }
 

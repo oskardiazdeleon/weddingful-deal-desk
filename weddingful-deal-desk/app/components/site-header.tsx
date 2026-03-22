@@ -8,7 +8,11 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/brand")) {
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/brand") ||
+    pathname?.startsWith("/vendors/live-demo")
+  ) {
     return null;
   }
 
