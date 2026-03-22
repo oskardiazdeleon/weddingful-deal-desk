@@ -151,7 +151,7 @@ export function VendorLiveCallStudio({
       if (!signedUrl || typeof signedUrl !== "string") throw new Error("No signed session URL returned from ElevenLabs API.");
 
       setSignedCallUrl(signedUrl);
-      setCallMsg("Session ready. Click “Open Secure Call” to start voice in a clean call window.");
+      setCallMsg("Session ready. Open secure call in a clean call window.");
     } catch (e) {
       setCallMsg(`Unable to start call: ${formatError(e)}`);
     } finally {
@@ -182,14 +182,14 @@ export function VendorLiveCallStudio({
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f8fb] px-4 py-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4">
+    <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 sm:px-4 sm:py-6">
+      <div className="max-w-[1500px] mx-auto">
+        <div className="mb-3 rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-gray-500 font-semibold">Weddingful · Live Call Studio</p>
-              <h1 className="text-2xl font-semibold text-gray-900">{config.name}</h1>
-              <p className="text-sm text-gray-500">{config.subtitle}</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-gray-500 font-semibold">Weddingful · Live Call Studio</p>
+              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">{config.name}</h1>
+              <p className="text-xs sm:text-sm text-gray-500">{config.subtitle}</p>
             </div>
             <div className="text-right">
               <p className="text-xs uppercase tracking-wide text-gray-500">Workspace</p>
@@ -203,23 +203,29 @@ export function VendorLiveCallStudio({
           </div>
         </div>
 
-        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3 overflow-x-auto">
-          <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Scenario</p>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(scenarioMap).map(([id, s]) => (
-              <button key={id} onClick={() => setActiveScenarioId(id)} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition ${activeScenarioId === id ? "bg-rose-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
-                {s.name}
-              </button>
-            ))}
-          </div>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)_320px] gap-3">
+          <aside className="rounded-xl border border-gray-200 bg-white p-3 h-fit">
+            <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Scenarios</p>
+            <div className="space-y-2 mb-3">
+              {Object.entries(scenarioMap).map(([id, s]) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveScenarioId(id)}
+                  className={`w-full text-left rounded-lg px-3 py-2 text-sm ${
+                    activeScenarioId === id
+                      ? "bg-rose-50 border border-rose-200 text-rose-700 font-semibold"
+                      : "bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
 
-        <div className="grid lg:grid-cols-[300px_minmax(0,1fr)] gap-4">
-          <aside className="rounded-2xl border border-gray-200 bg-white p-4 h-fit">
-            <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">Call Plan</p>
-            <div className="space-y-2 mb-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Live Coaching</p>
+            <div className="space-y-2">
               {config.coaching.map((item, idx) => (
-                <div key={item.title} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <div key={item.title} className="rounded-lg border border-gray-200 bg-gray-50 p-2.5">
                   <p className="text-[11px] uppercase tracking-wide font-semibold text-rose-600 mb-1">Step {idx + 1}</p>
                   <p className="font-semibold text-gray-900 text-sm">{item.title}</p>
                   <p className="text-xs text-gray-600 mt-1">{item.detail}</p>
@@ -228,74 +234,68 @@ export function VendorLiveCallStudio({
             </div>
           </aside>
 
-          <section className="space-y-4">
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold text-gray-900">Voice Session</h2>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${signedCallUrl ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{signedCallUrl ? "Ready" : "Not started"}</span>
-              </div>
+          <section className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col items-center justify-center min-h-[620px] text-center">
+            <div className="h-20 w-20 rounded-full bg-rose-100 flex items-center justify-center text-3xl mb-4">🎙️</div>
+            <p className="text-lg font-semibold text-gray-900">AI Wedding Concierge</p>
+            <p className="text-sm text-gray-500 mb-4">Voice session for {config.name}</p>
 
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <p className="text-sm text-gray-600">Start call to generate a secure ElevenLabs session URL.</p>
-                {signedCallUrl ? (
-                  <a href={signedCallUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700">
-                    Open Secure Call
-                  </a>
-                ) : null}
-              </div>
-
-              <div className="mt-3 flex items-center gap-2">
-                <button onClick={startCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
-                  {callStarting ? "Starting call..." : signedCallUrl ? "Refresh Session" : "Start Call"}
-                </button>
-                <p className="text-xs text-gray-500">Mic prompt appears in the secure call window.</p>
-              </div>
-              {callMsg ? <p className="text-xs text-gray-500 mt-2">{callMsg}</p> : null}
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button onClick={saveSnapshot} className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60" disabled={sending}>
-                  {sending ? "Sending..." : "Save + Email Summary"}
-                </button>
-                <Link href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                  View / Export Summary
-                </Link>
-              </div>
-              {sendMsg ? <p className="text-xs text-gray-500 mt-2">{sendMsg}</p> : null}
+            <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-gray-50 p-4 mb-4">
+              <p className="text-sm text-gray-600">Start call to generate a secure ElevenLabs session URL.</p>
+              {signedCallUrl ? (
+                <a href={signedCallUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700">
+                  Open Secure Call
+                </a>
+              ) : null}
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-gray-200 bg-white p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Live Transcript</h3>
-                <div className="space-y-2 max-h-[300px] overflow-auto pr-1">
-                  {transcript.map((line, idx) => (
-                    <div key={`${line.speaker}-${idx}`} className={`rounded-lg p-2.5 text-sm ${line.speaker === "AI Assistant" ? "bg-rose-50" : line.speaker === "System" ? "bg-blue-50" : "bg-gray-50"}`}>
-                      <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">{line.speaker}</p>
-                      <p className="text-gray-700">{line.text}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <button onClick={startCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-6 py-2.5 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
+              {callStarting ? "Starting call..." : signedCallUrl ? "Refresh Session" : "Start Call"}
+            </button>
+            {callMsg ? <p className="text-xs text-gray-500 mt-3 max-w-md">{callMsg}</p> : null}
 
-              <div className="rounded-2xl border border-gray-200 bg-white p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Session Metrics</h3>
-                <p className="text-sm text-gray-600">Current score</p>
-                <p className="text-3xl font-semibold text-gray-900 mb-3">{score}/100</p>
-                <p className="text-sm text-gray-600 mb-2">Saved snapshots</p>
-                <div className="space-y-2 max-h-[180px] overflow-auto pr-1">
-                  {snapshots.length === 0 ? (
-                    <p className="text-sm text-gray-500">No snapshots yet.</p>
-                  ) : (
-                    snapshots.map((s) => (
-                      <div key={s.id} className="rounded-md bg-gray-50 p-2">
-                        <p className="text-xs font-semibold text-gray-700">{s.scenario}</p>
-                        <p className="text-xs text-gray-500">{s.score}/100 · {new Date(s.createdAt).toLocaleString()}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <button onClick={saveSnapshot} className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60" disabled={sending}>
+                {sending ? "Sending..." : "Save + Email Summary"}
+              </button>
+              <Link href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                View / Export Summary
+              </Link>
             </div>
+            {sendMsg ? <p className="text-xs text-gray-500 mt-2">{sendMsg}</p> : null}
           </section>
+
+          <aside className="rounded-xl border border-gray-200 bg-white p-3 h-fit">
+            <p className="text-sm font-semibold text-gray-900 mb-2">Live Transcript</p>
+            <div className="space-y-2 max-h-[620px] overflow-auto pr-1">
+              {transcript.map((line, idx) => (
+                <div key={`${line.speaker}-${idx}`} className={`rounded-lg p-2.5 text-sm ${line.speaker === "AI Assistant" ? "bg-rose-50" : line.speaker === "System" ? "bg-blue-50" : "bg-gray-50"}`}>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">{line.speaker}</p>
+                  <p className="text-gray-700">{line.text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 rounded-lg border border-gray-200 p-2.5">
+              <p className="text-xs text-gray-500">Current score</p>
+              <p className="text-xl font-semibold text-gray-900">{score}/100</p>
+            </div>
+
+            <div className="mt-2 rounded-lg border border-gray-200 p-2.5">
+              <p className="text-xs text-gray-500 mb-1">Snapshots</p>
+              <div className="space-y-1.5 max-h-[130px] overflow-auto pr-1">
+                {snapshots.length === 0 ? (
+                  <p className="text-xs text-gray-500">No snapshots yet.</p>
+                ) : (
+                  snapshots.map((s) => (
+                    <div key={s.id} className="rounded bg-gray-50 p-1.5">
+                      <p className="text-[11px] font-semibold text-gray-700">{s.scenario}</p>
+                      <p className="text-[11px] text-gray-500">{s.score}/100 · {new Date(s.createdAt).toLocaleString()}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </main>
