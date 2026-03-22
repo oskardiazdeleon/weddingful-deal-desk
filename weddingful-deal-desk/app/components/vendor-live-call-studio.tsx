@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Script from "next/script";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type CoachingItem = {
   title: string;
@@ -30,6 +30,48 @@ const ElevenLabsConvai = "elevenlabs-convai" as any;
 const DEFAULT_AGENT_ID = "agent_4801kf4jnhneet6tscp3zt0f76er";
 
 const scenarioMap: Record<string, ScenarioConfig> = {
+  "availability-check": {
+    name: "Customer Checks Availability Dates",
+    subtitle: "Staged Live Call · Availability Qualification",
+    openingPrompt:
+      "Thanks for calling Weddingful. I can help check your wedding date availability and capture fit details for the events team.",
+    systemPrompt:
+      "Role: Weddingful Availability Concierge. Capture fixed/flexible date, guest count range, destination, ceremony/reception setup, and urgency.",
+    coaching: [
+      { title: "Clarify date flexibility", detail: "Confirm fixed date vs acceptable alternate windows." },
+      { title: "Capture event profile", detail: "Collect guest count and preferred ceremony/reception format." },
+      { title: "Validate location fit", detail: "Confirm destination or property preference." },
+      { title: "Confirm next step", detail: "Offer availability callback timeline and owner." },
+    ],
+  },
+  "insurance-policy": {
+    name: "Customer Asks About Insurance Policy",
+    subtitle: "Staged Live Call · Policy Clarification",
+    openingPrompt:
+      "I can guide you through policy basics and capture the exact coverage questions for our wedding advisor.",
+    systemPrompt:
+      "Role: Weddingful Policy Concierge. Capture concerns about cancellation, weather, vendor issues, and reimbursement timelines. Provide general guidance and route detailed policy questions to specialist.",
+    coaching: [
+      { title: "Identify policy concern", detail: "Clarify what risk the caller is worried about first." },
+      { title: "Map to coverage topic", detail: "Tag issue under weather, cancellation, vendor, or travel." },
+      { title: "Capture context", detail: "Note date window, booking stage, and urgency." },
+      { title: "Route to specialist", detail: "Set expectation for policy follow-up and documentation." },
+    ],
+  },
+  "accommodation-upgrade": {
+    name: "Customer Requests Accommodation Upgrade",
+    subtitle: "Staged Live Call · Upgrade Workflow",
+    openingPrompt:
+      "Happy to help with room upgrades. I’ll capture your current package and preferred upgrade options.",
+    systemPrompt:
+      "Role: Weddingful Guest Experience Concierge. Capture current booking tier, desired room type upgrades, date, room count, and budget sensitivity. Route to accommodations desk.",
+    coaching: [
+      { title: "Confirm current booking", detail: "Capture package/tier and reservation context." },
+      { title: "Capture upgrade request", detail: "Collect room types, quantity, and must-have preferences." },
+      { title: "Check constraints", detail: "Capture budget range and flexibility for alternatives." },
+      { title: "Set follow-up owner", detail: "Route to accommodations with SLA and summary." },
+    ],
+  },
   "new-inquiry": {
     name: "New Destination Wedding Inquiry",
     subtitle: "Staged Live Call · Qualification Flow",
@@ -42,32 +84,6 @@ const scenarioMap: Record<string, ScenarioConfig> = {
       { title: "Capture decision data", detail: "Collect date window, guest count, and budget before routing." },
       { title: "Set next step", detail: "Offer consultation options and confirm contact preference." },
       { title: "Close with summary", detail: "Repeat details back to reduce handoff errors." },
-    ],
-  },
-  "date-availability": {
-    name: "Date Availability + Capacity Check",
-    subtitle: "Staged Live Call · Availability Qualification",
-    openingPrompt: "I can help check date and capacity fit. Let me capture your preferred window and guest count.",
-    systemPrompt:
-      "Role: Weddingful Availability Concierge. Capture fixed/flexible date, guest count range, destination, ceremony/reception setup.",
-    coaching: [
-      { title: "Clarify flexibility", detail: "Confirm alternate dates vs fixed date." },
-      { title: "Validate party size", detail: "Capture min/max guest count." },
-      { title: "Identify venue fit", detail: "Ask ceremony + reception preference." },
-      { title: "Route correctly", detail: "Escalate high-fit inquiries for same-day follow-up." },
-    ],
-  },
-  "vendor-qa": {
-    name: "Planner Partnership Intake",
-    subtitle: "Staged Live Call · Partner Program Intake",
-    openingPrompt: "Happy to help with partner intake. I’ll gather your destination focus and event profile.",
-    systemPrompt:
-      "Role: Weddingful Partner Intake Concierge. Capture planner market focus, average event size, budget tier, onboarding readiness.",
-    coaching: [
-      { title: "Profile the partner", detail: "Capture specialty and event volume." },
-      { title: "Market focus", detail: "Confirm destinations and budget tiers." },
-      { title: "Program alignment", detail: "Check readiness for staged workflow." },
-      { title: "Next action", detail: "Offer onboarding call windows." },
     ],
   },
 };
@@ -90,6 +106,9 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
   const [sending, setSending] = useState(false);
   const [sendMsg, setSendMsg] = useState("");
   const [widgetReady, setWidgetReady] = useState(false);
+  const [callStarting, setCallStarting] = useState(false);
+  const [callMsg, setCallMsg] = useState("");
+  const widgetHostRef = useRef<any>(null);
 
   useEffect(() => {
     setTranscript([
@@ -119,6 +138,46 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
   }, [transcript]);
 
   const transcriptLines = useMemo(() => transcript.map((line) => `${line.speaker}: ${line.text}`), [transcript]);
+
+  async function startCall() {
+    setCallStarting(true);
+    setCallMsg("");
+
+    try {
+      const host = widgetHostRef.current as any;
+      const widget = host?.querySelector?.("elevenlabs-convai");
+
+      if (!widget) {
+        setCallMsg("Voice widget not loaded yet. Try again in a second.");
+        return;
+      }
+
+      if (typeof widget.startSession === "function") {
+        await widget.startSession();
+        setCallMsg("Call started via ElevenLabs session API.");
+        return;
+      }
+
+      if (typeof widget.startCall === "function") {
+        await widget.startCall();
+        setCallMsg("Call started via ElevenLabs call API.");
+        return;
+      }
+
+      const shadowBtn = widget.shadowRoot?.querySelector?.("button");
+      if (shadowBtn) {
+        shadowBtn.click();
+        setCallMsg("Call start triggered from widget control.");
+        return;
+      }
+
+      setCallMsg("Widget loaded, but start method was not available. Use the floating call control.");
+    } catch (e: any) {
+      setCallMsg(e?.message || "Unable to start call. Check mic permissions and try again.");
+    } finally {
+      setCallStarting(false);
+    }
+  }
 
   async function saveSnapshot(sendEmailToLead = false) {
     if (!leadId) {
@@ -209,12 +268,24 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
                 </span>
               </div>
 
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div ref={widgetHostRef} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                 <ElevenLabsConvai agent-id={DEFAULT_AGENT_ID} />
               </div>
 
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  onClick={startCall}
+                  disabled={!widgetReady || callStarting}
+                  className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50"
+                >
+                  {callStarting ? "Starting call..." : "Start Call"}
+                </button>
+                <p className="text-xs text-gray-500">You may be prompted for microphone permissions.</p>
+              </div>
+              {callMsg ? <p className="text-xs text-gray-500 mt-2">{callMsg}</p> : null}
+
               <p className="text-xs text-gray-500 mt-2">
-                If the inline widget doesn’t render immediately, use the floating call bubble at the bottom-right.
+                If inline start fails, use the floating call bubble at bottom-right.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">

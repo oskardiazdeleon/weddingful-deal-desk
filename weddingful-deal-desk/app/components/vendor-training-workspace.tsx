@@ -18,57 +18,73 @@ type Scenario = {
 
 const scenarios: Scenario[] = [
   {
-    id: "new-inquiry",
-    title: "New Destination Wedding Inquiry",
+    id: "availability-check",
+    title: "Customer Checks Availability Dates",
     level: "Foundational",
     steps: 8,
+    duration: "5-7 min",
+    intro: [
+      { speaker: "Caller", text: "Hi, we are looking at wedding dates in late April. Do you have availability?" },
+      { speaker: "AI Assistant", text: "Absolutely — I can help check availability windows. Are your dates fixed or flexible?" },
+      { speaker: "Caller", text: "We can shift by one week if needed." },
+      { speaker: "AI Assistant", text: "Perfect. I’ll capture that and route your request to scheduling." },
+    ],
+    extension: [
+      { speaker: "AI Assistant", text: "How many guests are you expecting so we can confirm venue fit?" },
+      { speaker: "Caller", text: "Around 95 guests." },
+      { speaker: "AI Assistant", text: "Great — I’ve marked this as high-priority availability follow-up." },
+    ],
+  },
+  {
+    id: "insurance-policy",
+    title: "Customer Asks About Insurance Policy",
+    level: "Priority",
+    steps: 7,
+    duration: "4-6 min",
+    intro: [
+      { speaker: "Caller", text: "Can you explain your wedding insurance and cancellation policy?" },
+      { speaker: "AI Assistant", text: "Yes — I can walk you through coverage basics and flag details for your coordinator." },
+      { speaker: "Caller", text: "We want to understand weather and vendor cancellation coverage." },
+      { speaker: "AI Assistant", text: "Understood. I’ll note those concerns and route your policy questions to the right specialist." },
+    ],
+    extension: [
+      { speaker: "AI Assistant", text: "Would you like a policy summary emailed before your consult?" },
+      { speaker: "Caller", text: "Yes please, that would help." },
+    ],
+  },
+  {
+    id: "accommodation-upgrade",
+    title: "Customer Requests Accommodation Upgrade",
+    level: "Priority",
+    steps: 6,
+    duration: "4-6 min",
+    intro: [
+      { speaker: "Caller", text: "We’re already booked and want to discuss a room upgrade for the wedding block." },
+      { speaker: "AI Assistant", text: "Happy to help. I can capture your current package and preferred upgrade options." },
+      { speaker: "Caller", text: "We’re interested in ocean-view suites for close family." },
+      { speaker: "AI Assistant", text: "Perfect. I’ll send this to accommodations with priority tags." },
+    ],
+    extension: [
+      { speaker: "AI Assistant", text: "Do you want us to include price ranges and availability by room type?" },
+      { speaker: "Caller", text: "Yes, include both." },
+    ],
+  },
+  {
+    id: "new-inquiry",
+    title: "New Destination Wedding Inquiry",
+    level: "Advanced",
+    steps: 9,
     duration: "6-8 min",
     intro: [
       { speaker: "Caller", text: "Hi, we’re planning a destination wedding for May next year." },
       { speaker: "AI Assistant", text: "Amazing — I can help with that. What destination are you considering?" },
       { speaker: "Caller", text: "Cancun, around 80 guests." },
       { speaker: "AI Assistant", text: "Perfect. What budget range should I note for your planning team?" },
-      { speaker: "Caller", text: "Roughly 45 thousand." },
-      { speaker: "AI Assistant", text: "Got it. I’ll route this to your venue team as high-priority." },
     ],
     extension: [
       { speaker: "AI Assistant", text: "Would you like me to schedule a venue consultation this week?" },
       { speaker: "Caller", text: "Yes, Thursday afternoon works." },
       { speaker: "AI Assistant", text: "Perfect — I captured that and notified your sales coordinator." },
-    ],
-  },
-  {
-    id: "date-availability",
-    title: "Date Availability + Capacity Check",
-    level: "Priority",
-    steps: 7,
-    duration: "5-7 min",
-    intro: [
-      { speaker: "Caller", text: "Do you have availability for a 120-guest wedding in November?" },
-      { speaker: "AI Assistant", text: "I can check your requested window and gather details for the events team." },
-      { speaker: "Caller", text: "Great, we’re flexible by one week." },
-      { speaker: "AI Assistant", text: "Noted. Do you prefer beachfront ceremony or ballroom reception setup?" },
-    ],
-    extension: [
-      { speaker: "Caller", text: "Beach ceremony, ballroom dinner." },
-      { speaker: "AI Assistant", text: "Great — I’m flagging this as high-fit and routing for same-day follow-up." },
-    ],
-  },
-  {
-    id: "vendor-qa",
-    title: "Planner Partnership Intake",
-    level: "Advanced",
-    steps: 9,
-    duration: "8-10 min",
-    intro: [
-      { speaker: "Caller", text: "I’m a planner and want to discuss preferred partner rates." },
-      { speaker: "AI Assistant", text: "Happy to help. Which destinations and average guest counts do you specialize in?" },
-      { speaker: "Caller", text: "Mexico and Caribbean, mostly 70 to 140 guests." },
-      { speaker: "AI Assistant", text: "Perfect. I’ll capture your profile and route to partnerships." },
-    ],
-    extension: [
-      { speaker: "AI Assistant", text: "Would you like a partner onboarding call this week?" },
-      { speaker: "Caller", text: "Yes, please send options." },
     ],
   },
 ];
