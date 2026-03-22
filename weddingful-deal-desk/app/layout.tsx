@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "./components/site-header";
@@ -16,6 +17,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geist.className} bg-white text-gray-900 antialiased`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-YFTKS97GVL"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-YFTKS97GVL');
+          `}
+        </Script>
         <SiteHeader />
         {children}
         <SiteFooter />
