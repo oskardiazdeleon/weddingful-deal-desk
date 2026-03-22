@@ -58,7 +58,13 @@ export default function VendorsPage() {
       const data = await res.json();
       const company = encodeURIComponent(form.company || "your-brand");
       const lead = encodeURIComponent(data.id || "");
-      router.push(`/vendors/confirmed?company=${company}&lead=${lead}`);
+
+      const emailStatus = data?.email?.ok ? "sent" : "not_sent";
+      const emailReason = encodeURIComponent(data?.email?.reason || "");
+
+      router.push(
+        `/vendors/confirmed?company=${company}&lead=${lead}&emailStatus=${emailStatus}&emailReason=${emailReason}`
+      );
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
