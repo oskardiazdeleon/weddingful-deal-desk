@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import Script from "next/script";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type CoachingItem = {
   title: string;
@@ -25,6 +26,7 @@ type Snapshot = {
   transcript: string[];
 };
 
+const ElevenLabsConvai = "elevenlabs-convai" as any;
 const DEFAULT_AGENT_ID = "agent_4801kf4jnhneet6tscp3zt0f76er";
 
 const scenarioMap: Record<string, ScenarioConfig> = {
@@ -118,6 +120,8 @@ export function VendorLiveCallStudio({
   const [callStarting, setCallStarting] = useState(false);
   const [callMsg, setCallMsg] = useState("");
   const [signedCallUrl, setSignedCallUrl] = useState("");
+  const [widgetReady, setWidgetReady] = useState(false);
+  const widgetHostRef = useRef<any>(null);
 
   useEffect(() => {
     setTranscript([
@@ -141,6 +145,73 @@ export function VendorLiveCallStudio({
     refreshSnapshots();
   }, [leadId]);
 
+  useEffect(() => {
+    const hideLaunchers = () => {
+      const nodes = document.querySelectorAll(
+        "elevenlabs-convai-launcher, elevenlabs-launcher, [data-elevenlabs-launcher], [id*='elevenlabs'][id*='launcher'], [class*='elevenlabs'][class*='launcher']"
+      );
+      nodes.forEach((n) => (n as HTMLElement).style.setProperty("display", "none", "important"));
+    };
+
+    hideLaunchers();
+    const observer = new MutationObserver(hideLaunchers);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [widgetReady]);
+
+  useEffect(() => {
+    if (!signedCallUrl || !widgetReady) return;
+
+    let cancelled = false;
+
+    const startEmbedded = async () => {
+      try {
+        await customElements.whenDefined("elevenlabs-convai");
+        if (cancelled) return;
+
+        const host = widgetHostRef.current as any;
+        const widget = host?.querySelector?.("elevenlabs-convai");
+        if (!widget) {
+          setCallMsg("Voice panel not ready yet. Please click Start Call again.");
+          return;
+        }
+
+        for (let i = 0; i < 20; i++) {
+          if (cancelled) return;
+
+          const starter = widget.startSession || widget.startCall;
+          if (typeof starter === "function") {
+            try {
+              await starter.call(widget, {
+                signedUrl: signedCallUrl,
+                dynamicVariables: { scenario: config.name, company },
+              });
+            } catch {
+              try {
+                await starter.call(widget, signedCallUrl);
+              } catch {
+                await starter.call(widget);
+              }
+            }
+            setCallMsg("Call connected in-page. You can start talking now.");
+            return;
+          }
+
+          await new Promise((r) => setTimeout(r, 250));
+        }
+
+        setCallMsg("Session created, but in-page starter was unavailable. Refresh and retry.");
+      } catch (e) {
+        setCallMsg(`Unable to attach session: ${formatError(e)}`);
+      }
+    };
+
+    startEmbedded();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [signedCallUrl, widgetReady, config.name, company]);
 
   const score = useMemo(() => {
     const captured = transcript.filter((x) => x.speaker === "Caller").length;
@@ -228,6 +299,19 @@ export function VendorLiveCallStudio({
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-6">
+      <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="afterInteractive" onLoad={() => setWidgetReady(true)} />
+      <style jsx global>{`
+        elevenlabs-convai-launcher,
+        elevenlabs-launcher,
+        [data-elevenlabs-launcher],
+        [id*="elevenlabs"][id*="launcher"],
+        [class*="elevenlabs"][class*="launcher"] {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          opacity: 0 !important;
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto">
         <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
@@ -305,23 +389,12 @@ export function VendorLiveCallStudio({
                 </span>
               </div>
 
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                {signedCallUrl ? (
-                  <div className="h-[220px] flex flex-col items-center justify-center text-center">
-                    <p className="text-sm text-gray-600 mb-3">Call session initialized successfully.</p>
-                    <a
-                      href={signedCallUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700"
-                    >
-                      Open Live Call
-                    </a>
-                    <p className="text-xs text-gray-500 mt-3">Opens the secure ElevenLabs call session in a new tab.</p>
-                  </div>
+              <div ref={widgetHostRef} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+                {widgetReady ? (
+                  <ElevenLabsConvai agent-id={DEFAULT_AGENT_ID} variant="embedded" mode="call" />
                 ) : (
                   <div className="h-[220px] flex items-center justify-center text-sm text-gray-500">
-                    Click <strong className="mx-1">Start Call</strong> to initialize your secure voice session.
+                    Loading voice panel...
                   </div>
                 )}
               </div>
