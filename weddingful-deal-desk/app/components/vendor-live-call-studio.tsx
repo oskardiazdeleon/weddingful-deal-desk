@@ -219,25 +219,43 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-gray-500 font-semibold">Weddingful · Live Call Studio</p>
-            <h1 className="text-2xl font-semibold text-gray-900">{config.name}</h1>
-            <p className="text-sm text-gray-500">{config.subtitle} · {company}</p>
+        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-gray-500 font-semibold">Weddingful · Live Call Studio</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{config.name}</h1>
+              <p className="text-sm text-gray-500">{config.subtitle}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-wide text-gray-500">Workspace</p>
+              <p className="text-sm font-semibold text-gray-800">{company || "Demo"}</p>
+            </div>
           </div>
-          <Link href={`/vendors/training-dashboard?lead=${encodeURIComponent(leadId)}`} className="text-sm font-semibold text-gray-700 hover:text-rose-600">
-            ← Back
-          </Link>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={`/vendors/training-dashboard?lead=${encodeURIComponent(leadId)}`}
+              className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Training Dashboard
+            </Link>
+            <Link
+              href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`}
+              className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Demo Summary
+            </Link>
+          </div>
         </div>
 
-        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3">
+        <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3 overflow-x-auto">
           <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Scenario Switcher</p>
           <div className="flex flex-wrap gap-2">
             {Object.entries(scenarioMap).map(([id, s]) => (
               <button
                 key={id}
                 onClick={() => setActiveScenarioId(id)}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition ${
                   activeScenarioId === id
                     ? "bg-rose-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
