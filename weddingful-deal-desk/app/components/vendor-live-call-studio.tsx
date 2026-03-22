@@ -1,14 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Script from "next/script";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-type CoachingItem = {
-  title: string;
-  detail: string;
-};
-
+type CoachingItem = { title: string; detail: string };
 type ScenarioConfig = {
   name: string;
   subtitle: string;
@@ -26,64 +21,55 @@ type Snapshot = {
   transcript: string[];
 };
 
-const ElevenLabsConvai = "elevenlabs-convai" as any;
 const DEFAULT_AGENT_ID = "agent_4801kf4jnhneet6tscp3zt0f76er";
 
 const scenarioMap: Record<string, ScenarioConfig> = {
   "availability-check": {
-    name: "Customer Checks Availability Dates",
-    subtitle: "Staged Live Call · Availability Qualification",
-    openingPrompt:
-      "Thanks for calling Weddingful. I can help check your wedding date availability and capture fit details for the events team.",
-    systemPrompt:
-      "Role: Weddingful Availability Concierge. Capture fixed/flexible date, guest count range, destination, ceremony/reception setup, and urgency.",
+    name: "Availability Date Check",
+    subtitle: "Wedding inquiry intake",
+    openingPrompt: "Thanks for calling Weddingful. I can check date availability and capture event fit.",
+    systemPrompt: "Capture date flexibility, guest count, destination, event format, and urgency.",
     coaching: [
-      { title: "Clarify date flexibility", detail: "Confirm fixed date vs acceptable alternate windows." },
-      { title: "Capture event profile", detail: "Collect guest count and preferred ceremony/reception format." },
-      { title: "Validate location fit", detail: "Confirm destination or property preference." },
-      { title: "Confirm next step", detail: "Offer availability callback timeline and owner." },
+      { title: "Date window", detail: "Fixed date or flexible range" },
+      { title: "Guest profile", detail: "Expected guest count and format" },
+      { title: "Destination fit", detail: "Preferred location/property" },
+      { title: "Next step", detail: "Confirm follow-up SLA" },
     ],
   },
   "insurance-policy": {
-    name: "Customer Asks About Insurance Policy",
-    subtitle: "Staged Live Call · Policy Clarification",
-    openingPrompt:
-      "I can guide you through policy basics and capture the exact coverage questions for our wedding advisor.",
-    systemPrompt:
-      "Role: Weddingful Policy Concierge. Capture concerns about cancellation, weather, vendor issues, and reimbursement timelines. Provide general guidance and route detailed policy questions to specialist.",
+    name: "Insurance Policy Questions",
+    subtitle: "Coverage clarification",
+    openingPrompt: "I can capture your policy questions and route to a specialist.",
+    systemPrompt: "Tag risk type: weather/cancellation/vendor/travel, then route with context.",
     coaching: [
-      { title: "Identify policy concern", detail: "Clarify what risk the caller is worried about first." },
-      { title: "Map to coverage topic", detail: "Tag issue under weather, cancellation, vendor, or travel." },
-      { title: "Capture context", detail: "Note date window, booking stage, and urgency." },
-      { title: "Route to specialist", detail: "Set expectation for policy follow-up and documentation." },
+      { title: "Risk type", detail: "What exact concern they have" },
+      { title: "Coverage context", detail: "Booking stage + date window" },
+      { title: "Urgency", detail: "Decision deadline" },
+      { title: "Handoff", detail: "Policy specialist follow-up" },
     ],
   },
   "accommodation-upgrade": {
-    name: "Customer Requests Accommodation Upgrade",
-    subtitle: "Staged Live Call · Upgrade Workflow",
-    openingPrompt:
-      "Happy to help with room upgrades. I’ll capture your current package and preferred upgrade options.",
-    systemPrompt:
-      "Role: Weddingful Guest Experience Concierge. Capture current booking tier, desired room type upgrades, date, room count, and budget sensitivity. Route to accommodations desk.",
+    name: "Accommodation Upgrade Request",
+    subtitle: "Post-booking optimization",
+    openingPrompt: "I can help capture your upgrade request and route it to accommodations.",
+    systemPrompt: "Capture current package, desired upgrade, quantity, budget sensitivity.",
     coaching: [
-      { title: "Confirm current booking", detail: "Capture package/tier and reservation context." },
-      { title: "Capture upgrade request", detail: "Collect room types, quantity, and must-have preferences." },
-      { title: "Check constraints", detail: "Capture budget range and flexibility for alternatives." },
-      { title: "Set follow-up owner", detail: "Route to accommodations with SLA and summary." },
+      { title: "Current booking", detail: "Existing package/tier" },
+      { title: "Desired upgrade", detail: "Room type and count" },
+      { title: "Constraints", detail: "Budget + alternatives" },
+      { title: "Owner", detail: "Assign follow-up desk" },
     ],
   },
   "new-inquiry": {
-    name: "New Destination Wedding Inquiry",
-    subtitle: "Staged Live Call · Qualification Flow",
-    openingPrompt:
-      "Thanks for calling Weddingful. I can help explore destination wedding options and capture details for your planning team.",
-    systemPrompt:
-      "Role: Weddingful Voice Concierge. Capture destination, date window, guest count, budget band, and preferred follow-up channel.",
+    name: "New Destination Inquiry",
+    subtitle: "Full lead qualification",
+    openingPrompt: "I can help with destination options and capture your event profile.",
+    systemPrompt: "Capture destination, date window, guest count, budget band, preferred contact channel.",
     coaching: [
-      { title: "Open with confidence", detail: "Confirm destination + event type in the first 30 seconds." },
-      { title: "Capture decision data", detail: "Collect date window, guest count, and budget before routing." },
-      { title: "Set next step", detail: "Offer consultation options and confirm contact preference." },
-      { title: "Close with summary", detail: "Repeat details back to reduce handoff errors." },
+      { title: "Intent", detail: "Destination and event type" },
+      { title: "Core qualifiers", detail: "Date / guests / budget" },
+      { title: "Prioritization", detail: "Urgency + readiness" },
+      { title: "Close", detail: "Next action + confirmation" },
     ],
   },
 };
@@ -120,14 +106,12 @@ export function VendorLiveCallStudio({
   const [callStarting, setCallStarting] = useState(false);
   const [callMsg, setCallMsg] = useState("");
   const [signedCallUrl, setSignedCallUrl] = useState("");
-  const [widgetReady, setWidgetReady] = useState(false);
-  const widgetHostRef = useRef<any>(null);
 
   useEffect(() => {
     setTranscript([
-      { speaker: "AI Assistant", text: "Connected. Weddingful staged call environment is active." },
+      { speaker: "AI Assistant", text: "Session prep complete." },
       { speaker: "AI Assistant", text: config.openingPrompt },
-      { speaker: "System", text: `Scenario prompt loaded: ${config.systemPrompt}` },
+      { speaker: "System", text: `Prompt: ${config.systemPrompt}` },
     ]);
   }, [config]);
 
@@ -145,128 +129,38 @@ export function VendorLiveCallStudio({
     refreshSnapshots();
   }, [leadId]);
 
-  useEffect(() => {
-    const hideLaunchers = () => {
-      const nodes = document.querySelectorAll(
-        "elevenlabs-convai-launcher, elevenlabs-launcher, [data-elevenlabs-launcher], [id*='elevenlabs'][id*='launcher'], [class*='elevenlabs'][class*='launcher']"
-      );
-      nodes.forEach((n) => (n as HTMLElement).style.setProperty("display", "none", "important"));
-    };
-
-    hideLaunchers();
-    const observer = new MutationObserver(hideLaunchers);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [widgetReady]);
-
-  useEffect(() => {
-    if (!signedCallUrl || !widgetReady) return;
-
-    let cancelled = false;
-
-    const startEmbedded = async () => {
-      try {
-        await customElements.whenDefined("elevenlabs-convai");
-        if (cancelled) return;
-
-        const host = widgetHostRef.current as any;
-        const widget = host?.querySelector?.("elevenlabs-convai");
-        if (!widget) {
-          setCallMsg("Voice panel not ready yet. Please click Start Call again.");
-          return;
-        }
-
-        for (let i = 0; i < 20; i++) {
-          if (cancelled) return;
-
-          const starter = widget.startSession || widget.startCall;
-          if (typeof starter === "function") {
-            try {
-              await starter.call(widget, {
-                signedUrl: signedCallUrl,
-                dynamicVariables: { scenario: config.name, company },
-              });
-            } catch {
-              // Important: never pass raw wss:// string argument,
-              // some widget versions may treat it like a browser URL navigation.
-              await starter.call(widget);
-            }
-            setCallMsg("Call connected in-page. You can start talking now.");
-            return;
-          }
-
-          await new Promise((r) => setTimeout(r, 250));
-        }
-
-        const launcher = document.querySelector("button[aria-label*='Start a call'], button[aria-label*='call'], elevenlabs-convai-launcher button") as HTMLButtonElement | null;
-        if (launcher) {
-          launcher.click();
-          setCallMsg("Session ready. Triggered ElevenLabs launcher fallback — complete mic prompt to hear audio.");
-          return;
-        }
-
-        setCallMsg("Session created, but in-page starter was unavailable. Use the bottom-right call launcher to begin audio.");
-      } catch (e) {
-        setCallMsg(`Unable to attach session: ${formatError(e)}`);
-      }
-    };
-
-    startEmbedded();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [signedCallUrl, widgetReady, config.name, company]);
-
-  const score = useMemo(() => {
-    const captured = transcript.filter((x) => x.speaker === "Caller").length;
-    return Math.min(98, 72 + captured * 6);
-  }, [transcript]);
-
+  const score = useMemo(() => Math.min(98, 72 + transcript.filter((x) => x.speaker === "Caller").length * 6), [transcript]);
   const transcriptLines = useMemo(() => transcript.map((line) => `${line.speaker}: ${line.text}`), [transcript]);
 
   async function startCall() {
     setCallStarting(true);
     setCallMsg("");
+    setSignedCallUrl("");
 
     try {
       const sessionRes = await fetch("/api/elevenlabs/start-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenario: activeScenarioId,
-          leadId,
-          company,
-          agentId: DEFAULT_AGENT_ID,
-        }),
+        body: JSON.stringify({ scenario: activeScenarioId, leadId, company, agentId: DEFAULT_AGENT_ID }),
       });
 
       const sessionData = await sessionRes.json().catch(() => ({}));
-      if (!sessionRes.ok) {
-        throw new Error(formatError(sessionData?.error || sessionData || "Could not initialize ElevenLabs session"));
-      }
+      if (!sessionRes.ok) throw new Error(formatError(sessionData?.error || sessionData || "Could not initialize session"));
 
       const signedUrl = sessionData?.signedUrl;
-      if (!signedUrl || typeof signedUrl !== "string") {
-        throw new Error("No signed call URL returned from ElevenLabs API.");
-      }
+      if (!signedUrl || typeof signedUrl !== "string") throw new Error("No signed session URL returned from ElevenLabs API.");
 
       setSignedCallUrl(signedUrl);
-      setCallMsg("Call session ready. Use the in-page call panel below.");
-    } catch (e: any) {
-      const details = formatError(e);
-      setCallMsg(`Unable to start call: ${details}`);
+      setCallMsg("Session ready. Click “Open Secure Call” to start voice in a clean call window.");
+    } catch (e) {
+      setCallMsg(`Unable to start call: ${formatError(e)}`);
     } finally {
       setCallStarting(false);
     }
   }
 
-  async function saveSnapshot(sendEmailToLead = true) {
-    if (!leadId) {
-      setSendMsg("Missing lead id for saving.");
-      return;
-    }
-
+  async function saveSnapshot() {
+    if (!leadId) return setSendMsg("Missing lead id for saving.");
     setSending(true);
     setSendMsg("");
 
@@ -274,28 +168,13 @@ export function VendorLiveCallStudio({
       const res = await fetch("/api/vendor-demo-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leadId,
-          scenario: config.name,
-          score,
-          transcript: transcriptLines,
-          sendEmailToLead,
-        }),
+        body: JSON.stringify({ leadId, scenario: config.name, score, transcript: transcriptLines, sendEmailToLead: true }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "save_failed");
-
       await refreshSnapshots();
-
-      setSendMsg(
-        sendEmailToLead
-          ? data?.email?.ok
-            ? "Demo summary emailed to lead."
-            : `Saved, but email failed: ${data?.email?.reason || "unknown"}`
-          : "Snapshot saved."
-      );
-    } catch (e: any) {
+      setSendMsg(data?.email?.ok ? "Summary emailed." : `Saved, but email failed: ${data?.email?.reason || "unknown"}`);
+    } catch (e) {
       setSendMsg(formatError(e));
     } finally {
       setSending(false);
@@ -304,19 +183,6 @@ export function VendorLiveCallStudio({
 
   return (
     <main className="min-h-screen bg-[#f7f8fb] px-4 py-6">
-      <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="afterInteractive" onLoad={() => setWidgetReady(true)} />
-      <style jsx global>{`
-        elevenlabs-convai-launcher,
-        elevenlabs-launcher,
-        [data-elevenlabs-launcher],
-        [id*="elevenlabs"][id*="launcher"],
-        [class*="elevenlabs"][class*="launcher"] {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-          opacity: 0 !important;
-        }
-      `}</style>
       <div className="max-w-7xl mx-auto">
         <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
@@ -331,36 +197,17 @@ export function VendorLiveCallStudio({
               <p className="text-[11px] text-gray-500 mt-1">Build: {buildVersion}</p>
             </div>
           </div>
-
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link
-              href={`/vendors/training-dashboard?lead=${encodeURIComponent(leadId)}`}
-              className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Training Dashboard
-            </Link>
-            <Link
-              href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`}
-              className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Demo Summary
-            </Link>
+            <Link href={`/vendors/training-dashboard?lead=${encodeURIComponent(leadId)}`} className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50">Training Dashboard</Link>
+            <Link href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`} className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50">Demo Summary</Link>
           </div>
         </div>
 
         <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3 overflow-x-auto">
-          <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Scenario Switcher</p>
+          <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Scenario</p>
           <div className="flex flex-wrap gap-2">
             {Object.entries(scenarioMap).map(([id, s]) => (
-              <button
-                key={id}
-                onClick={() => setActiveScenarioId(id)}
-                className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition ${
-                  activeScenarioId === id
-                    ? "bg-rose-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
+              <button key={id} onClick={() => setActiveScenarioId(id)} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition ${activeScenarioId === id ? "bg-rose-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
                 {s.name}
               </button>
             ))}
@@ -379,59 +226,37 @@ export function VendorLiveCallStudio({
                 </div>
               ))}
             </div>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-blue-700 mb-1">Scenario Prompt</p>
-              <p className="text-xs text-blue-900">{config.systemPrompt}</p>
-            </div>
           </aside>
 
           <section className="space-y-4">
             <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Voice Agent Session</h2>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${signedCallUrl ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                  {signedCallUrl ? "Call panel ready" : "Session not started"}
-                </span>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-gray-900">Voice Session</h2>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${signedCallUrl ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{signedCallUrl ? "Ready" : "Not started"}</span>
               </div>
 
-              <div ref={widgetHostRef} className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-                {widgetReady ? (
-                  <ElevenLabsConvai agent-id={DEFAULT_AGENT_ID} variant="embedded" mode="call" />
-                ) : (
-                  <div className="h-[220px] flex items-center justify-center text-sm text-gray-500">
-                    Loading voice panel...
-                  </div>
-                )}
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm text-gray-600">Start call to generate a secure ElevenLabs session URL.</p>
+                {signedCallUrl ? (
+                  <a href={signedCallUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700">
+                    Open Secure Call
+                  </a>
+                ) : null}
               </div>
 
               <div className="mt-3 flex items-center gap-2">
-                <button
-                  onClick={startCall}
-                  disabled={callStarting}
-                  className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50"
-                >
-                  {callStarting ? "Starting call..." : signedCallUrl ? "Refresh Call Session" : "Start Call"}
+                <button onClick={startCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-5 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
+                  {callStarting ? "Starting call..." : signedCallUrl ? "Refresh Session" : "Start Call"}
                 </button>
-                <p className="text-xs text-gray-500">Browser may ask for microphone permission.</p>
+                <p className="text-xs text-gray-500">Mic prompt appears in the secure call window.</p>
               </div>
               {callMsg ? <p className="text-xs text-gray-500 mt-2">{callMsg}</p> : null}
 
-              <p className="text-xs text-gray-500 mt-2">
-                Calls are initialized from the Start Call button via server-side ElevenLabs API session creation.
-              </p>
-
               <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  onClick={() => saveSnapshot(true)}
-                  className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60"
-                  disabled={sending}
-                >
+                <button onClick={saveSnapshot} className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60" disabled={sending}>
                   {sending ? "Sending..." : "Save + Email Summary"}
                 </button>
-                <Link
-                  href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`}
-                  className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                >
+                <Link href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                   View / Export Summary
                 </Link>
               </div>
