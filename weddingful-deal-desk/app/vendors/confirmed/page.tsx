@@ -90,7 +90,7 @@ export default async function VendorConfirmedPage({ searchParams }: Props) {
             Enter Live Call Studio
           </Link>
           <a
-            href="mailto:hello@weddingful.co?subject=Weddingful%20Vendor%20Pilot%20Onboarding"
+            href="mailto:hello@weddingful.com?subject=Weddingful%20Vendor%20Pilot%20Onboarding"
             className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"
           >
             Contact Onboarding Team

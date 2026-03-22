@@ -107,8 +107,8 @@ export default async function ConciergePage({ searchParams }: Props) {
 
         <p className="text-center text-sm text-gray-400">
           Questions?{" "}
-          <a href="mailto:hello@weddingful.co" className="text-rose-600 hover:underline">
-            hello@weddingful.co
+          <a href="mailto:hello@weddingful.com" className="text-rose-600 hover:underline">
+            hello@weddingful.com
           </a>{" "}
           ·{" "}
           <Link href="/audit" className="hover:underline">
