@@ -133,6 +133,39 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
     refreshSnapshots();
   }, [leadId]);
 
+  useEffect(() => {
+    const removeFloating = () => {
+      const inlineHost = widgetHostRef.current as HTMLElement | null;
+
+      const candidates = Array.from(
+        document.querySelectorAll(
+          "elevenlabs-convai-launcher, elevenlabs-convai-bubble, [data-elevenlabs-launcher], [id*='elevenlabs-launcher'], [class*='elevenlabs-launcher'], iframe[src*='elevenlabs.io']"
+        )
+      );
+
+      for (const node of candidates) {
+        if (!inlineHost) continue;
+        if (inlineHost.contains(node)) continue;
+
+        const el = node as HTMLElement;
+        const style = window.getComputedStyle(el);
+        const isFixed = style.position === "fixed" || style.position === "sticky";
+        if (isFixed || node.tagName.toLowerCase() !== "elevenlabs-convai") {
+          el.remove();
+        }
+      }
+    };
+
+    const id = window.setTimeout(removeFloating, 800);
+    const observer = new MutationObserver(() => removeFloating());
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      window.clearTimeout(id);
+      observer.disconnect();
+    };
+  }, [widgetReady]);
+
   const score = useMemo(() => {
     const captured = transcript.filter((x) => x.speaker === "Caller").length;
     return Math.min(98, 72 + captured * 6);
@@ -145,36 +178,56 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
     setCallMsg("");
 
     try {
+      const sessionRes = await fetch("/api/elevenlabs/start-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scenario: activeScenarioId,
+          leadId,
+          company,
+          agentId: DEFAULT_AGENT_ID,
+        }),
+      });
+
+      const sessionData = await sessionRes.json().catch(() => ({}));
+      if (!sessionRes.ok) {
+        throw new Error(sessionData?.error || "Could not initialize ElevenLabs session");
+      }
+
+      const signedUrl = sessionData?.signedUrl;
+
       const host = widgetHostRef.current as any;
       const widget = host?.querySelector?.("elevenlabs-convai");
 
       if (!widget) {
-        setCallMsg("Voice widget not loaded yet. Try again in a second.");
-        return;
+        throw new Error("Voice widget not loaded yet. Try again in a second.");
       }
 
       if (typeof widget.startSession === "function") {
-        await widget.startSession();
-        setCallMsg("Call started via ElevenLabs session API.");
+        if (signedUrl) {
+          await widget.startSession({
+            signedUrl,
+            dynamicVariables: {
+              scenario: config.name,
+              company,
+            },
+          });
+        } else {
+          await widget.startSession();
+        }
+        setCallMsg("Call started through ElevenLabs API + session bridge.");
         return;
       }
 
       if (typeof widget.startCall === "function") {
         await widget.startCall();
-        setCallMsg("Call started via ElevenLabs call API.");
+        setCallMsg("Call started through ElevenLabs API.");
         return;
       }
 
-      const shadowBtn = widget.shadowRoot?.querySelector?.("button");
-      if (shadowBtn) {
-        shadowBtn.click();
-        setCallMsg("Call start triggered from widget control.");
-        return;
-      }
-
-      setCallMsg("Widget loaded, but start method was not available. Use the floating call control.");
+      throw new Error("Widget loaded but no callable session method was found.");
     } catch (e: any) {
-      setCallMsg(e?.message || "Unable to start call. Check mic permissions and try again.");
+      setCallMsg(e?.message || "Unable to start call. Check mic permissions and ElevenLabs API key.");
     } finally {
       setCallStarting(false);
     }
@@ -305,7 +358,7 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
               {callMsg ? <p className="text-xs text-gray-500 mt-2">{callMsg}</p> : null}
 
               <p className="text-xs text-gray-500 mt-2">
-                If inline start fails, use the floating call bubble at bottom-right.
+                Calls are initialized from the Start Call button via server-side ElevenLabs API session creation.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
