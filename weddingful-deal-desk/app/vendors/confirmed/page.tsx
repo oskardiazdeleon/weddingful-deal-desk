@@ -93,14 +93,8 @@ export default async function VendorConfirmedPage({ searchParams }: Props) {
             href="mailto:hello@weddingful.com?subject=Weddingful%20Vendor%20Pilot%20Onboarding"
             className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"
           >
-            Contact Onboarding Team
+            Need help? Contact onboarding
           </a>
-          <Link
-            href="/vendors"
-            className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"
-          >
-            Back to Vendor Page
-          </Link>
         </div>
       </section>
     </main>
