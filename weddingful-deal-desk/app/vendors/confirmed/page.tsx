@@ -17,85 +17,95 @@ export default async function VendorConfirmedPage({ searchParams }: Props) {
   const emailReason = sp.emailReason || "";
 
   return (
-    <main className="min-h-screen bg-white px-6 py-14">
-      <section className="max-w-5xl mx-auto text-center">
-        <div className="inline-block bg-emerald-50 text-emerald-700 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-6">
-          Registration confirmed
+    <main className="min-h-screen bg-[#f7f8fb] px-4 py-10 sm:px-6">
+      <section className="max-w-5xl mx-auto">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+            Registration Confirmed
+          </div>
+          <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-gray-900">
+            You&apos;re in, {company}.
+          </h1>
+          <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
+            Launch your staged Weddingful workspace and preview exactly how voice concierge can run in your program.
+          </p>
         </div>
-        <h1 className="text-5xl font-bold text-gray-900 leading-tight mb-4">
-          Welcome, {company}.
-          <br />
-          Here&apos;s what top teams unlock first.
-        </h1>
-        <p className="text-gray-500 text-lg mb-6 max-w-3xl mx-auto">
-          Your pilot profile is in. We now track outcomes with a transparent scorecard based on your own call data.
-        </p>
 
         {emailStatus === "not_sent" ? (
-          <div className="max-w-3xl mx-auto mb-8 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
-            <p className="text-sm font-semibold text-amber-900">Registration saved. Confirmation email is not configured yet.</p>
-            <p className="text-sm text-amber-800 mt-1">
-              Your lead is in the system and follow-up queue. We can enable outbound email delivery next (provider key + sender domain).
-              {emailReason ? ` (reason: ${emailReason})` : ""}
-            </p>
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <span className="font-semibold">Lead captured.</span> Confirmation email is not configured yet.
+            {emailReason ? <span className="text-amber-800"> ({emailReason})</span> : null}
           </div>
         ) : emailStatus === "sent" ? (
-          <div className="max-w-3xl mx-auto mb-8 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left">
-            <p className="text-sm font-semibold text-emerald-900">Confirmation email sent.</p>
-            <p className="text-sm text-emerald-800 mt-1">Check your inbox for pilot access and onboarding steps.</p>
+          <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <span className="font-semibold">Email sent.</span> Your onboarding summary is in your inbox.
           </div>
         ) : null}
 
-        <div className="grid md:grid-cols-3 gap-5 mb-10">
-          {[
-            [
-              "Answer rate",
-              "Track answered vs missed inquiry calls by time window.",
-              "Goal: identify after-hours gaps and recover missed demand.",
-            ],
-            [
-              "Qualification quality",
-              "Measure capture of date window, budget, guest count, and destination intent.",
-              "Goal: improve handoff quality for faster sales follow-up.",
-            ],
-            [
-              "Response speed",
-              "Track time from inbound call to first sales follow-up.",
-              "Goal: tighten SLA execution and increase demo booking conversion.",
-            ],
-          ].map(([label, desc, goal]) => (
-            <div key={label} className="rounded-2xl border border-gray-200 p-6 text-left bg-white shadow-sm">
-              <p className="text-lg font-semibold text-gray-900 mb-2">{label}</p>
-              <p className="text-sm text-gray-600 mb-2">{desc}</p>
-              <p className="text-sm text-gray-500">{goal}</p>
-            </div>
-          ))}
+        <div className="grid md:grid-cols-3 gap-3 mb-8">
+          <SignalCard title="Answer Coverage" desc="Track answered vs missed inquiry calls by daypart." />
+          <SignalCard title="Qualification Quality" desc="Measure capture of date, budget, guest count, and destination." />
+          <SignalCard title="Sales Response Speed" desc="Track time-to-first-follow-up for high-intent inquiries." />
         </div>
 
-        <div className="max-w-3xl mx-auto mb-10 rounded-xl border border-blue-200 bg-blue-50 p-4 text-left">
-          <p className="text-sm font-semibold text-blue-900">About benchmarks</p>
-          <p className="text-sm text-blue-800 mt-1">
-            This page now avoids unverified performance claims. As pilot data accumulates, we’ll show account-specific uplift metrics sourced from your own call logs and CRM outcomes.
-          </p>
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-rose-600 font-semibold mb-2">Recommended First Step</p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Open Live Call Studio</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Demo the AI voice flow with wedding-specific scenarios, real-time transcript, and snapshot export.
+            </p>
+            <Link
+              href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=new-inquiry`}
+              className="inline-flex rounded-full bg-rose-600 text-white px-5 py-2.5 text-sm font-semibold hover:bg-rose-700"
+            >
+              Start Live Demo
+            </Link>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <p className="text-xs uppercase tracking-wide text-blue-600 font-semibold mb-2">Program Workspace</p>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Training Dashboard</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Review staged program settings, scenario library, transcript history, and pilot readiness progress.
+            </p>
+            <Link
+              href={`/vendors/training-dashboard?lead=${encodeURIComponent(lead)}`}
+              className="inline-flex rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Open Dashboard
+            </Link>
+          </div>
         </div>
 
-        <div className="rounded-2xl bg-gray-50 border border-gray-200 p-6 mb-8 text-left max-w-3xl mx-auto">
-          <p className="text-sm text-gray-500 mb-2 uppercase tracking-wider font-semibold">Next step</p>
-          <h2 className="text-2xl font-bold mb-2">Open your demo & training dashboard</h2>
-          <p className="text-gray-600">
-            Review your onboarding checklist, voice flow training modules, and the demo lead intelligence view.
-          </p>
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 mb-8">
+          We only show measurable outcomes from your own staged and live call data. No fabricated performance claims.
         </div>
 
-        <div className="flex justify-center gap-3">
-          <Link href={`/vendors/training-dashboard?lead=${encodeURIComponent(lead)}`} className="rounded-full bg-rose-600 text-white px-6 py-3 font-semibold hover:bg-rose-700">
-            Enter Demo Dashboard
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link
+            href={`/vendors/live-demo?lead=${encodeURIComponent(lead)}&company=${encodeURIComponent(company)}&scenario=new-inquiry`}
+            className="rounded-full bg-rose-600 text-white px-6 py-3 font-semibold hover:bg-rose-700"
+          >
+            Enter Live Call Studio
           </Link>
-          <Link href="/vendors" className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50">
+          <Link
+            href="/vendors"
+            className="rounded-full border border-gray-300 px-6 py-3 font-semibold text-gray-700 hover:bg-white"
+          >
             Back to Vendor Page
           </Link>
         </div>
       </section>
     </main>
+  );
+}
+
+function SignalCard({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <p className="text-sm font-semibold text-gray-900">{title}</p>
+      <p className="text-sm text-gray-600 mt-1">{desc}</p>
+    </div>
   );
 }
