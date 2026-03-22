@@ -14,6 +14,16 @@ export default async function VendorLiveDemoPage({ searchParams }: Props) {
 
   const inquiry = leadId ? getVendorInquiryById(leadId) : null;
   const company = inquiry?.company || sp.company || "Wedding Program Demo";
+  const buildVersion = (process.env.VERCEL_GIT_COMMIT_SHA || process.env.NEXT_PUBLIC_APP_VERSION || "local")
+    .toString()
+    .slice(0, 7);
 
-  return <VendorLiveCallStudio company={company} leadId={leadId} scenario={scenario} />;
+  return (
+    <VendorLiveCallStudio
+      company={company}
+      leadId={leadId}
+      scenario={scenario}
+      buildVersion={buildVersion}
+    />
+  );
 }

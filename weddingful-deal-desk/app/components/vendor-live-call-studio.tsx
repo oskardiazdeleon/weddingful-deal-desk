@@ -97,7 +97,17 @@ function formatError(err: unknown): string {
   }
 }
 
-export function VendorLiveCallStudio({ company, leadId, scenario }: { company: string; leadId: string; scenario: string }) {
+export function VendorLiveCallStudio({
+  company,
+  leadId,
+  scenario,
+  buildVersion,
+}: {
+  company: string;
+  leadId: string;
+  scenario: string;
+  buildVersion: string;
+}) {
   const [activeScenarioId, setActiveScenarioId] = useState<string>(scenario in scenarioMap ? scenario : "new-inquiry");
   const config = useMemo(() => scenarioMap[activeScenarioId] || scenarioMap["new-inquiry"], [activeScenarioId]);
 
@@ -229,6 +239,7 @@ export function VendorLiveCallStudio({ company, leadId, scenario }: { company: s
             <div className="text-right">
               <p className="text-xs uppercase tracking-wide text-gray-500">Workspace</p>
               <p className="text-sm font-semibold text-gray-800">{company || "Demo"}</p>
+              <p className="text-[11px] text-gray-500 mt-1">Build: {buildVersion}</p>
             </div>
           </div>
 
