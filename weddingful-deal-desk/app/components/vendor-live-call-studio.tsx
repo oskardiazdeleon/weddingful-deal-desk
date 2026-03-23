@@ -13,15 +13,6 @@ type ScenarioConfig = {
   systemPrompt: string;
 };
 
-type Snapshot = {
-  id: string;
-  createdAt: string;
-  leadId: string;
-  scenario: string;
-  score: number;
-  transcript: string[];
-};
-
 const DEFAULT_AGENT_ID = "agent_4801kf4jnhneet6tscp3zt0f76er";
 
 const scenarioMap: Record<string, ScenarioConfig> = {
@@ -101,7 +92,6 @@ export function VendorLiveCallStudio({
   const config = useMemo(() => scenarioMap[activeScenarioId] || scenarioMap["new-inquiry"], [activeScenarioId]);
 
   const [transcript, setTranscript] = useState<{ speaker: string; text: string }[]>([]);
-  const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [callStarting, setCallStarting] = useState(false);
   const [callMsg, setCallMsg] = useState("");
   const [callStatus, setCallStatus] = useState<"idle" | "connecting" | "connected" | "ended" | "error">("idle");
@@ -109,28 +99,9 @@ export function VendorLiveCallStudio({
   const conversationRef = useRef<Conversation | null>(null);
 
   useEffect(() => {
-    setTranscript([
-      { speaker: "AI Assistant", text: "Session prep complete." },
-      { speaker: "AI Assistant", text: config.openingPrompt },
-      { speaker: "System", text: `Prompt: ${config.systemPrompt}` },
-    ]);
+    // Reset transcript when scenario changes. Real-time entries are populated from ElevenLabs events.
+    setTranscript([]);
   }, [config]);
-
-  async function refreshSnapshots() {
-    if (!leadId) return;
-    try {
-      const res = await fetch(`/api/vendor-demo-summary?leadId=${encodeURIComponent(leadId)}`);
-      if (!res.ok) return;
-      const data = await res.json();
-      setSnapshots(data.snapshots || []);
-    } catch {}
-  }
-
-  useEffect(() => {
-    refreshSnapshots();
-  }, [leadId]);
-
-  const score = useMemo(() => Math.min(98, 72 + transcript.filter((x) => x.speaker === "Caller").length * 6), [transcript]);
 
   async function startCall() {
     setCallStarting(true);
@@ -291,6 +262,11 @@ export function VendorLiveCallStudio({
           <aside className="rounded-xl border border-gray-200 bg-white p-3 h-fit">
             <p className="text-sm font-semibold text-gray-900 mb-2">Live Transcript</p>
             <div className="space-y-2 max-h-[620px] overflow-auto pr-1">
+              {transcript.length === 0 ? (
+                <div className="rounded-lg p-3 text-sm bg-gray-50 text-gray-500">
+                  No live transcript yet. Click Start Call and begin speaking.
+                </div>
+              ) : null}
               {transcript.map((line, idx) => (
                 <div key={`${line.speaker}-${idx}`} className={`rounded-lg p-2.5 text-sm ${line.speaker === "AI Assistant" ? "bg-rose-50" : line.speaker === "System" ? "bg-blue-50" : "bg-gray-50"}`}>
                   <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">{line.speaker}</p>
@@ -300,24 +276,9 @@ export function VendorLiveCallStudio({
             </div>
 
             <div className="mt-3 rounded-lg border border-gray-200 p-2.5">
-              <p className="text-xs text-gray-500">Current score</p>
-              <p className="text-xl font-semibold text-gray-900">{score}/100</p>
-            </div>
-
-            <div className="mt-2 rounded-lg border border-gray-200 p-2.5">
-              <p className="text-xs text-gray-500 mb-1">Snapshots</p>
-              <div className="space-y-1.5 max-h-[130px] overflow-auto pr-1">
-                {snapshots.length === 0 ? (
-                  <p className="text-xs text-gray-500">No snapshots yet.</p>
-                ) : (
-                  snapshots.map((s) => (
-                    <div key={s.id} className="rounded bg-gray-50 p-1.5">
-                      <p className="text-[11px] font-semibold text-gray-700">{s.scenario}</p>
-                      <p className="text-[11px] text-gray-500">{s.score}/100 · {new Date(s.createdAt).toLocaleString()}</p>
-                    </div>
-                  ))
-                )}
-              </div>
+              <p className="text-xs text-gray-500">Transcript source</p>
+              <p className="text-sm font-semibold text-gray-900">ElevenLabs real-time conversation events</p>
+              <p className="text-[11px] text-gray-500 mt-1">Entries appear only when the live call is active.</p>
             </div>
           </aside>
         </div>
