@@ -102,8 +102,6 @@ export function VendorLiveCallStudio({
 
   const [transcript, setTranscript] = useState<{ speaker: string; text: string }[]>([]);
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
-  const [sending, setSending] = useState(false);
-  const [sendMsg, setSendMsg] = useState("");
   const [callStarting, setCallStarting] = useState(false);
   const [callMsg, setCallMsg] = useState("");
   const [callStatus, setCallStatus] = useState<"idle" | "connecting" | "connected" | "ended" | "error">("idle");
@@ -133,7 +131,6 @@ export function VendorLiveCallStudio({
   }, [leadId]);
 
   const score = useMemo(() => Math.min(98, 72 + transcript.filter((x) => x.speaker === "Caller").length * 6), [transcript]);
-  const transcriptLines = useMemo(() => transcript.map((line) => `${line.speaker}: ${line.text}`), [transcript]);
 
   async function startCall() {
     setCallStarting(true);
@@ -216,28 +213,6 @@ export function VendorLiveCallStudio({
     };
   }, []);
 
-  async function saveSnapshot() {
-    if (!leadId) return setSendMsg("Missing lead id for saving.");
-    setSending(true);
-    setSendMsg("");
-
-    try {
-      const res = await fetch("/api/vendor-demo-summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, scenario: config.name, score, transcript: transcriptLines, sendEmailToLead: true }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "save_failed");
-      await refreshSnapshots();
-      setSendMsg(data?.email?.ok ? "Summary emailed." : `Saved, but email failed: ${data?.email?.reason || "unknown"}`);
-    } catch (e) {
-      setSendMsg(formatError(e));
-    } finally {
-      setSending(false);
-    }
-  }
-
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 sm:px-4 sm:py-6">
       <div className="max-w-[1500px] mx-auto">
@@ -311,15 +286,6 @@ export function VendorLiveCallStudio({
             </div>
             {callMsg ? <p className="text-xs text-gray-500 mt-3 max-w-md">{callMsg}</p> : null}
 
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <button onClick={saveSnapshot} className="rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700 disabled:opacity-60" disabled={sending}>
-                {sending ? "Sending..." : "Save + Email Summary"}
-              </button>
-              <Link href={`/vendors/demo-summary?lead=${encodeURIComponent(leadId)}&company=${encodeURIComponent(company)}`} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                View / Export Summary
-              </Link>
-            </div>
-            {sendMsg ? <p className="text-xs text-gray-500 mt-2">{sendMsg}</p> : null}
           </section>
 
           <aside className="rounded-xl border border-gray-200 bg-white p-3 h-fit">
