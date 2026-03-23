@@ -13,8 +13,6 @@ type ScenarioConfig = {
   systemPrompt: string;
 };
 
-const DEFAULT_AGENT_ID = "agent_4801kf4jnhneet6tscp3zt0f76er";
-
 const scenarioMap: Record<string, ScenarioConfig> = {
   "availability-check": {
     name: "Availability Date Check",
@@ -117,7 +115,7 @@ export function VendorLiveCallStudio({
       const sessionRes = await fetch("/api/elevenlabs/start-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario: activeScenarioId, leadId, company, agentId: DEFAULT_AGENT_ID }),
+        body: JSON.stringify({ scenario: activeScenarioId, leadId, company }),
       });
 
       const sessionData = await sessionRes.json().catch(() => ({}));
