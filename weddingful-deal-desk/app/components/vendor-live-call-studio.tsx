@@ -64,6 +64,8 @@ const scenarioMap: Record<string, ScenarioConfig> = {
   },
 };
 
+const PHOTOGRAPHY_AGENT_ID = "agent_8401kmfz9hr2e9evz6t2cadb6m2k";
+
 function formatError(err: unknown): string {
   if (!err) return "Unknown error";
   if (typeof err === "string") return err;
@@ -117,10 +119,20 @@ export function VendorLiveCallStudio({
         conversationRef.current = null;
       }
 
+      const selectedAgentId =
+        activeScenarioId === "photography-packages"
+          ? PHOTOGRAPHY_AGENT_ID
+          : undefined;
+
       const sessionRes = await fetch("/api/elevenlabs/start-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario: activeScenarioId, leadId, company }),
+        body: JSON.stringify({
+          scenario: activeScenarioId,
+          leadId,
+          company,
+          ...(selectedAgentId ? { agentId: selectedAgentId } : {}),
+        }),
       });
 
       const sessionData = await sessionRes.json().catch(() => ({}));
