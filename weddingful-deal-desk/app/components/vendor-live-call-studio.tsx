@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Conversation } from "@elevenlabs/client";
 
 type CoachingItem = { title: string; detail: string };
@@ -101,16 +101,19 @@ export function VendorLiveCallStudio({
   const [callMode, setCallMode] = useState<"listening" | "speaking" | "unknown">("unknown");
   const [agentDebug, setAgentDebug] = useState("");
   const conversationRef = useRef<Conversation | null>(null);
+  const reconnectAttemptsRef = useRef(0);
+  const manualEndRef = useRef(false);
 
   useEffect(() => {
     // Reset transcript when scenario changes. Real-time entries are populated from ElevenLabs events.
     setTranscript([]);
   }, [config]);
 
-  async function startCall() {
+  const startCall = useCallback(async () => {
     setCallStarting(true);
     setCallMsg("");
     setCallStatus("connecting");
+    manualEndRef.current = false;
 
     try {
       if (conversationRef.current) {
@@ -134,18 +137,34 @@ export function VendorLiveCallStudio({
 
       const conversation = await Conversation.startSession({
         signedUrl,
+        useWakeLock: true,
+        connectionDelay: { default: 300 },
         dynamicVariables: {
           scenario: config.name,
           company,
         },
         onConnect: () => {
+          reconnectAttemptsRef.current = 0;
           setCallStatus("connected");
           setCallMsg("Call connected. You should now hear audio.");
           setTranscript((prev) => [...prev, { speaker: "System", text: "Voice session connected." }]);
         },
-        onDisconnect: () => {
+        onDisconnect: (details) => {
           setCallStatus("ended");
-          setCallMsg("Call ended.");
+
+          const reason = (details as any)?.reason || "unknown";
+          const wasManual = manualEndRef.current || reason === "user";
+
+          if (!wasManual && reconnectAttemptsRef.current < 2) {
+            reconnectAttemptsRef.current += 1;
+            setCallMsg(`Call disconnected (${reason}). Reconnecting... (${reconnectAttemptsRef.current}/2)`);
+            setTimeout(() => {
+              startCall().catch(() => {});
+            }, 1200);
+            return;
+          }
+
+          setCallMsg(`Call ended${reason ? ` (${reason})` : ""}.`);
         },
         onModeChange: ({ mode }) => setCallMode(mode ?? "unknown"),
         onError: (message, context) => {
@@ -166,10 +185,25 @@ export function VendorLiveCallStudio({
     } finally {
       setCallStarting(false);
     }
-  }
+  }, [activeScenarioId, company, config.name, leadId]);
+
+  useEffect(() => {
+    if (callStatus !== "connected") return;
+
+    const id = setInterval(() => {
+      try {
+        conversationRef.current?.sendUserActivity();
+      } catch {
+        // ignore keepalive send errors
+      }
+    }, 10000);
+
+    return () => clearInterval(id);
+  }, [callStatus]);
 
   async function endCall() {
     try {
+      manualEndRef.current = true;
       if (conversationRef.current) {
         await conversationRef.current.endSession();
         conversationRef.current = null;
