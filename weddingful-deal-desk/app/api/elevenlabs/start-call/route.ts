@@ -12,6 +12,7 @@ function toErrorString(value: unknown): string {
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const DEFAULT_AGENT_ID = process.env.ELEVENLABS_AGENT_ID || "agent_4801kf4jnhneet6tscp3zt0f76er";
+const PHOTOGRAPHY_AGENT_ID = process.env.ELEVENLABS_AGENT_ID_PHOTOGRAPHY;
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +24,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const agentId = body?.agentId || DEFAULT_AGENT_ID;
+
+    const scenario = String(body?.scenario || "");
+    const scenarioAgentId =
+      scenario === "photography-packages" ? PHOTOGRAPHY_AGENT_ID : undefined;
+
+    const agentId = scenarioAgentId || body?.agentId || DEFAULT_AGENT_ID;
 
     const url = `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${encodeURIComponent(
       agentId
