@@ -99,6 +99,7 @@ export function VendorLiveCallStudio({
   const [callMsg, setCallMsg] = useState("");
   const [callStatus, setCallStatus] = useState<"idle" | "connecting" | "connected" | "ended" | "error">("idle");
   const [callMode, setCallMode] = useState<"listening" | "speaking" | "unknown">("unknown");
+  const [agentDebug, setAgentDebug] = useState("");
   const conversationRef = useRef<Conversation | null>(null);
 
   useEffect(() => {
@@ -128,6 +129,8 @@ export function VendorLiveCallStudio({
 
       const signedUrl = sessionData?.signedUrl;
       if (!signedUrl || typeof signedUrl !== "string") throw new Error("No signed session URL returned from ElevenLabs API.");
+
+      setAgentDebug(sessionData?.agentIdUsed ? String(sessionData.agentIdUsed) : "");
 
       const conversation = await Conversation.startSession({
         signedUrl,
@@ -248,6 +251,7 @@ export function VendorLiveCallStudio({
             <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-gray-50 p-4 mb-4">
               <p className="text-sm text-gray-600">Start call to connect microphone + speaker directly in this page.</p>
               <p className="text-xs text-gray-500 mt-2">Status: {callStatus} · Mode: {callMode}</p>
+              {agentDebug ? <p className="text-xs text-gray-500 mt-1">Agent: {agentDebug}</p> : null}
             </div>
 
             <div className="flex items-center justify-center gap-2">

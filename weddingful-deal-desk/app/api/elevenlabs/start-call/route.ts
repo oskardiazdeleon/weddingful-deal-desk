@@ -62,7 +62,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ signedUrl: data?.signed_url || null, raw: data });
+    return NextResponse.json({
+      signedUrl: data?.signed_url || null,
+      agentIdUsed: agentId,
+      scenario,
+      raw: data,
+    });
   } catch (e: any) {
     return NextResponse.json(
       { error: e?.message || "Internal server error" },
