@@ -190,6 +190,51 @@ export function VendorLiveCallStudio({
     };
   }, []);
 
+  const callAnalysis = useMemo(() => {
+    const callerLines = transcript.filter((t) => t.speaker === "Caller");
+    const agentLines = transcript.filter((t) => t.speaker === "AI Assistant");
+    const allText = transcript.map((t) => t.text.toLowerCase()).join(" ");
+
+    const wordCount = allText.trim() ? allText.trim().split(/\s+/).length : 0;
+    const fillerMatches = allText.match(/\b(um|uh|like|you know|sort of|kind of)\b/g) || [];
+    const questionMatches = allText.match(/\?/g) || [];
+
+    const positiveMatches = allText.match(/\b(great|perfect|happy|excellent|love|amazing|awesome|wonderful)\b/g) || [];
+    const negativeMatches = allText.match(/\b(problem|issue|concern|frustrated|angry|upset|confused)\b/g) || [];
+
+    const intentSignals = allText.match(/\b(date|guest|budget|package|availability|book|consult|timeline|follow-up|next step)\b/g) || [];
+
+    const callerChars = callerLines.reduce((s, l) => s + l.text.length, 0);
+    const agentChars = agentLines.reduce((s, l) => s + l.text.length, 0);
+    const totalChars = Math.max(1, callerChars + agentChars);
+    const callerShare = Math.round((callerChars / totalChars) * 100);
+
+    const tone = Math.max(0, Math.min(100, 60 + positiveMatches.length * 6 - negativeMatches.length * 5));
+    const direction = Math.max(0, Math.min(100, 35 + intentSignals.length * 5 + questionMatches.length * 2));
+    const fluency = Math.max(0, Math.min(100, 85 - fillerMatches.length * 6));
+    const engagement = Math.max(0, Math.min(100, 30 + (callerLines.length + agentLines.length) * 6));
+    const voiceInflux = Math.max(0, Math.min(100, 100 - Math.abs(50 - callerShare) * 2));
+
+    const overall =
+      Math.round((tone * 0.24 + direction * 0.28 + fluency * 0.2 + engagement * 0.14 + voiceInflux * 0.14) * 10) /
+      10;
+
+    return {
+      tone,
+      direction,
+      fluency,
+      engagement,
+      voiceInflux,
+      overall,
+      wordCount,
+      callerShare,
+      note:
+        wordCount < 20
+          ? "Score is provisional until more conversation is captured."
+          : "Score is based on live transcript heuristics (tone, direction, fluency, engagement, talk balance).",
+    };
+  }, [transcript]);
+
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 sm:px-4 sm:py-6">
       <div className="max-w-[1500px] mx-auto">
@@ -282,14 +327,38 @@ export function VendorLiveCallStudio({
               ))}
             </div>
 
-            <div className="mt-3 rounded-lg border border-gray-200 p-2.5">
-              <p className="text-xs text-gray-500">Transcript source</p>
-              <p className="text-sm font-semibold text-gray-900">ElevenLabs real-time conversation events</p>
-              <p className="text-[11px] text-gray-500 mt-1">Entries appear only when the live call is active.</p>
+            <div className="mt-3 rounded-lg border border-gray-200 p-3">
+              <p className="text-xs text-gray-500">Live Call Quality Analysis</p>
+              <p className="text-lg font-semibold text-gray-900">Overall: {callAnalysis.overall}/100</p>
+
+              <div className="mt-2 space-y-1.5 text-xs text-gray-700">
+                <ScoreRow label="Tone" value={callAnalysis.tone} />
+                <ScoreRow label="Direction" value={callAnalysis.direction} />
+                <ScoreRow label="Fluency" value={callAnalysis.fluency} />
+                <ScoreRow label="Engagement" value={callAnalysis.engagement} />
+                <ScoreRow label="Voice Influx" value={callAnalysis.voiceInflux} />
+              </div>
+
+              <p className="text-[11px] text-gray-500 mt-2">
+                Words: {callAnalysis.wordCount} · Caller talk share: {callAnalysis.callerShare}%
+              </p>
+              <p className="text-[11px] text-gray-500 mt-1">{callAnalysis.note}</p>
             </div>
           </aside>
         </div>
       </div>
     </main>
+  );
+}
+
+function ScoreRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="grid grid-cols-[110px_1fr_36px] items-center gap-2">
+      <span>{label}</span>
+      <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+        <div className="h-full bg-rose-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+      </div>
+      <span className="text-right">{value}</span>
+    </div>
   );
 }
