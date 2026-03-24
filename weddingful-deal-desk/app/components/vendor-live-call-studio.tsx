@@ -14,52 +14,52 @@ type ScenarioConfig = {
 };
 
 const scenarioMap: Record<string, ScenarioConfig> = {
-  "availability-check": {
-    name: "Availability Date Check",
-    subtitle: "Wedding inquiry intake",
-    openingPrompt: "Thanks for calling Weddingful. I can check date availability and capture event fit.",
-    systemPrompt: "Capture date flexibility, guest count, destination, event format, and urgency.",
+  "wedding-venue-availability": {
+    name: "Wedding Venue Availability",
+    subtitle: "Date and capacity qualification",
+    openingPrompt: "I can help check venue availability and gather your event details.",
+    systemPrompt: "Capture preferred date range, guest count, ceremony/reception requirements, and backup date flexibility.",
     coaching: [
-      { title: "Date window", detail: "Fixed date or flexible range" },
-      { title: "Guest profile", detail: "Expected guest count and format" },
-      { title: "Destination fit", detail: "Preferred location/property" },
-      { title: "Next step", detail: "Confirm follow-up SLA" },
+      { title: "Date range", detail: "Collect preferred and backup dates" },
+      { title: "Capacity", detail: "Confirm estimated guest count" },
+      { title: "Format", detail: "Ceremony and reception setup needs" },
+      { title: "Follow-up", detail: "Set timeline for availability response" },
     ],
   },
-  "insurance-policy": {
-    name: "Insurance Policy Questions",
-    subtitle: "Coverage clarification",
-    openingPrompt: "I can capture your policy questions and route to a specialist.",
-    systemPrompt: "Tag risk type: weather/cancellation/vendor/travel, then route with context.",
+  "music-options": {
+    name: "Music Options",
+    subtitle: "Entertainment planning intake",
+    openingPrompt: "I can walk you through music options and capture your event preferences.",
+    systemPrompt: "Capture preferred genres, live band vs DJ, ceremony/reception needs, and budget band.",
     coaching: [
-      { title: "Risk type", detail: "What exact concern they have" },
-      { title: "Coverage context", detail: "Booking stage + date window" },
-      { title: "Urgency", detail: "Decision deadline" },
-      { title: "Handoff", detail: "Policy specialist follow-up" },
+      { title: "Style preference", detail: "Genres and atmosphere" },
+      { title: "Format", detail: "Band, DJ, or hybrid" },
+      { title: "Timeline", detail: "Ceremony, cocktail, and reception coverage" },
+      { title: "Budget", detail: "Price range and upgrade appetite" },
     ],
   },
-  "accommodation-upgrade": {
-    name: "Accommodation Upgrade Request",
-    subtitle: "Post-booking optimization",
-    openingPrompt: "I can help capture your upgrade request and route it to accommodations.",
-    systemPrompt: "Capture current package, desired upgrade, quantity, budget sensitivity.",
+  "photography-packages": {
+    name: "Photography Packages",
+    subtitle: "Photo and media qualification",
+    openingPrompt: "I can help compare photography packages and capture your priorities.",
+    systemPrompt: "Capture photo/video needs, hours of coverage, style preferences, and deliverables requested.",
     coaching: [
-      { title: "Current booking", detail: "Existing package/tier" },
-      { title: "Desired upgrade", detail: "Room type and count" },
-      { title: "Constraints", detail: "Budget + alternatives" },
-      { title: "Owner", detail: "Assign follow-up desk" },
+      { title: "Coverage scope", detail: "Hours, locations, and event segments" },
+      { title: "Media type", detail: "Photo only or photo + video" },
+      { title: "Style", detail: "Editorial, candid, cinematic, etc." },
+      { title: "Deliverables", detail: "Albums, edits, turnaround expectations" },
     ],
   },
-  "new-inquiry": {
-    name: "New Destination Inquiry",
-    subtitle: "Full lead qualification",
-    openingPrompt: "I can help with destination options and capture your event profile.",
-    systemPrompt: "Capture destination, date window, guest count, budget band, preferred contact channel.",
+  "accommodations-options": {
+    name: "Accomodations Options",
+    subtitle: "Guest stay planning",
+    openingPrompt: "I can help review accommodation options for your wedding guests.",
+    systemPrompt: "Capture room block size, room categories, length of stay, and guest budget tiers.",
     coaching: [
-      { title: "Intent", detail: "Destination and event type" },
-      { title: "Core qualifiers", detail: "Date / guests / budget" },
-      { title: "Prioritization", detail: "Urgency + readiness" },
-      { title: "Close", detail: "Next action + confirmation" },
+      { title: "Room block size", detail: "Number of rooms and guest types" },
+      { title: "Room mix", detail: "Standard, premium, suites" },
+      { title: "Stay details", detail: "Check-in/out flexibility" },
+      { title: "Pricing fit", detail: "Budget tiers and upgrade options" },
     ],
   },
 };
@@ -86,8 +86,13 @@ export function VendorLiveCallStudio({
   scenario: string;
   buildVersion: string;
 }) {
-  const [activeScenarioId, setActiveScenarioId] = useState<string>(scenario in scenarioMap ? scenario : "new-inquiry");
-  const config = useMemo(() => scenarioMap[activeScenarioId] || scenarioMap["new-inquiry"], [activeScenarioId]);
+  const [activeScenarioId, setActiveScenarioId] = useState<string>(
+    scenario in scenarioMap ? scenario : "wedding-venue-availability"
+  );
+  const config = useMemo(
+    () => scenarioMap[activeScenarioId] || scenarioMap["wedding-venue-availability"],
+    [activeScenarioId]
+  );
 
   const [transcript, setTranscript] = useState<{ speaker: string; text: string }[]>([]);
   const [callStarting, setCallStarting] = useState(false);
