@@ -121,12 +121,20 @@ export default function AdminPage() {
             <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">Platform Control Center</h1>
             <p className="text-sm text-gray-500 mt-1">Guide admins through setup, provisioning, and call-ops readiness.</p>
           </div>
-          <Link
-            href="/brand/dashboard"
-            className="w-full sm:w-auto text-center rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
-          >
-            View Brand Dashboard
-          </Link>
+          <div className="flex w-full sm:w-auto flex-col sm:flex-row gap-2">
+            <Link
+              href="/clawwatch"
+              className="w-full sm:w-auto text-center rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Open Clawwatch
+            </Link>
+            <Link
+              href="/brand/dashboard"
+              className="w-full sm:w-auto text-center rounded-full bg-rose-600 text-white px-4 py-2 text-sm font-semibold hover:bg-rose-700"
+            >
+              View Brand Dashboard
+            </Link>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-[220px_minmax(0,1fr)] gap-5">
