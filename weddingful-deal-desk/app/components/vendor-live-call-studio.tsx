@@ -223,6 +223,10 @@ export function VendorLiveCallStudio({
     return () => clearInterval(id);
   }, [callStatus]);
 
+  const handleStartCall = useCallback(() => {
+    startCall().catch(() => {});
+  }, [startCall]);
+
   async function endCall() {
     try {
       manualEndRef.current = true;
@@ -366,7 +370,7 @@ export function VendorLiveCallStudio({
             </div>
 
             <div className="flex items-center justify-center gap-2">
-              <button onClick={startCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-6 py-2.5 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
+              <button onClick={handleStartCall} disabled={callStarting} className="rounded-full bg-rose-600 text-white px-6 py-2.5 text-sm font-semibold hover:bg-rose-700 disabled:opacity-50">
                 {callStarting ? "Starting call..." : callStatus === "connected" ? "Reconnect Call" : "Start Call"}
               </button>
               <button onClick={endCall} className="rounded-full border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
