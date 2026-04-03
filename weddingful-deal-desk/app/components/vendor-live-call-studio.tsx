@@ -103,20 +103,30 @@ export function VendorLiveCallStudio({
   const conversationRef = useRef<Conversation | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const manualEndRef = useRef(false);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionNonceRef = useRef(0);
 
   useEffect(() => {
     // Reset transcript when scenario changes. Real-time entries are populated from ElevenLabs events.
     setTranscript([]);
   }, [config]);
 
-  const startCall = useCallback(async () => {
+  const startCall = useCallback(async (options?: { isReconnect?: boolean }) => {
+    const isReconnect = options?.isReconnect ?? false;
+    const sessionNonce = ++sessionNonceRef.current;
+
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+
     setCallStarting(true);
     setCallMsg("");
     setCallStatus("connecting");
     manualEndRef.current = false;
 
     try {
-      if (conversationRef.current) {
+      if (!isReconnect && conversationRef.current) {
         await conversationRef.current.endSession();
         conversationRef.current = null;
       }
@@ -144,12 +154,19 @@ export function VendorLiveCallStudio({
           company,
         },
         onConnect: () => {
+          if (sessionNonce !== sessionNonceRef.current) return;
           reconnectAttemptsRef.current = 0;
           setCallStatus("connected");
           setCallMsg("Call connected. You should now hear audio.");
-          setTranscript((prev) => [...prev, { speaker: "System", text: "Voice session connected." }]);
+          setTranscript((prev) => {
+            const alreadyConnected = prev[prev.length - 1]?.speaker === "System" && prev[prev.length - 1]?.text === "Voice session connected.";
+            return alreadyConnected ? prev : [...prev, { speaker: "System", text: "Voice session connected." }];
+          });
         },
         onDisconnect: (details) => {
+          if (sessionNonce !== sessionNonceRef.current) return;
+
+          conversationRef.current = null;
           setCallStatus("ended");
 
           const reason = (details as any)?.reason || "unknown";
@@ -158,8 +175,8 @@ export function VendorLiveCallStudio({
           if (!wasManual && reconnectAttemptsRef.current < 2) {
             reconnectAttemptsRef.current += 1;
             setCallMsg(`Call disconnected (${reason}). Reconnecting... (${reconnectAttemptsRef.current}/2)`);
-            setTimeout(() => {
-              startCall().catch(() => {});
+            reconnectTimeoutRef.current = setTimeout(() => {
+              startCall({ isReconnect: true }).catch(() => {});
             }, 1200);
             return;
           }
@@ -177,8 +194,13 @@ export function VendorLiveCallStudio({
         },
       });
 
+      if (sessionNonce !== sessionNonceRef.current) {
+        await conversation.endSession().catch(() => {});
+        return;
+      }
+
       conversationRef.current = conversation;
-      setCallMsg("Connecting to voice session...");
+      setCallMsg(isReconnect ? "Reconnecting to voice session..." : "Connecting to voice session...");
     } catch (e) {
       setCallStatus("error");
       setCallMsg(`Unable to start call: ${formatError(e)}`);
@@ -204,6 +226,11 @@ export function VendorLiveCallStudio({
   async function endCall() {
     try {
       manualEndRef.current = true;
+      sessionNonceRef.current += 1;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       if (conversationRef.current) {
         await conversationRef.current.endSession();
         conversationRef.current = null;
@@ -217,6 +244,11 @@ export function VendorLiveCallStudio({
 
   useEffect(() => {
     return () => {
+      sessionNonceRef.current += 1;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
       if (conversationRef.current) {
         conversationRef.current.endSession().catch(() => {});
         conversationRef.current = null;
