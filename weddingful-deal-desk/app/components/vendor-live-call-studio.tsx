@@ -100,10 +100,12 @@ export function VendorLiveCallStudio({
   const [callStatus, setCallStatus] = useState<"idle" | "connecting" | "connected" | "ended" | "error">("idle");
   const [callMode, setCallMode] = useState<"listening" | "speaking" | "unknown">("unknown");
   const [agentDebug, setAgentDebug] = useState("");
+  const [sessionAttempt, setSessionAttempt] = useState(0);
+  const [lastDisconnectDebug, setLastDisconnectDebug] = useState("");
+  const [lastErrorDebug, setLastErrorDebug] = useState("");
+  const [signedUrlDebug, setSignedUrlDebug] = useState("");
   const conversationRef = useRef<Conversation | null>(null);
-  const reconnectAttemptsRef = useRef(0);
   const manualEndRef = useRef(false);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionNonceRef = useRef(0);
 
   useEffect(() => {
@@ -115,14 +117,12 @@ export function VendorLiveCallStudio({
     const isReconnect = options?.isReconnect ?? false;
     const sessionNonce = ++sessionNonceRef.current;
 
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
     setCallStarting(true);
     setCallMsg("");
     setCallStatus("connecting");
+    setLastDisconnectDebug("");
+    setLastErrorDebug("");
+    setSessionAttempt((prev) => prev + 1);
     manualEndRef.current = false;
 
     try {
@@ -144,6 +144,7 @@ export function VendorLiveCallStudio({
       if (!signedUrl || typeof signedUrl !== "string") throw new Error("No signed session URL returned from ElevenLabs API.");
 
       setAgentDebug(sessionData?.agentIdUsed ? String(sessionData.agentIdUsed) : "");
+      setSignedUrlDebug(typeof signedUrl === "string" ? `${signedUrl.slice(0, 80)}…` : "");
 
       const conversation = await Conversation.startSession({
         signedUrl,
@@ -155,7 +156,6 @@ export function VendorLiveCallStudio({
         },
         onConnect: () => {
           if (sessionNonce !== sessionNonceRef.current) return;
-          reconnectAttemptsRef.current = 0;
           setCallStatus("connected");
           setCallMsg("Call connected. You should now hear audio.");
           setTranscript((prev) => {
@@ -170,22 +170,21 @@ export function VendorLiveCallStudio({
           setCallStatus("ended");
 
           const reason = (details as any)?.reason || "unknown";
+          const debug = formatError(details);
           const wasManual = manualEndRef.current || reason === "user";
 
-          if (!wasManual && reconnectAttemptsRef.current < 2) {
-            reconnectAttemptsRef.current += 1;
-            setCallMsg(`Call disconnected (${reason}). Reconnecting... (${reconnectAttemptsRef.current}/2)`);
-            reconnectTimeoutRef.current = setTimeout(() => {
-              startCall({ isReconnect: true }).catch(() => {});
-            }, 1200);
-            return;
-          }
-
-          setCallMsg(`Call ended${reason ? ` (${reason})` : ""}.`);
+          setLastDisconnectDebug(debug);
+          setCallMsg(
+            wasManual
+              ? `Call ended${reason ? ` (${reason})` : ""}.`
+              : `Call disconnected${reason ? ` (${reason})` : ""}. Auto-reconnect is disabled for debugging.`
+          );
         },
         onModeChange: ({ mode }) => setCallMode(mode ?? "unknown"),
         onError: (message, context) => {
           setCallStatus("error");
+          const debug = formatError({ message, context });
+          setLastErrorDebug(debug);
           setCallMsg(`Call error: ${formatError(message || context)}`);
         },
         onMessage: ({ message, role }) => {
@@ -231,10 +230,6 @@ export function VendorLiveCallStudio({
     try {
       manualEndRef.current = true;
       sessionNonceRef.current += 1;
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
       if (conversationRef.current) {
         await conversationRef.current.endSession();
         conversationRef.current = null;
@@ -249,10 +244,6 @@ export function VendorLiveCallStudio({
   useEffect(() => {
     return () => {
       sessionNonceRef.current += 1;
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
       if (conversationRef.current) {
         conversationRef.current.endSession().catch(() => {});
         conversationRef.current = null;
@@ -366,6 +357,7 @@ export function VendorLiveCallStudio({
             <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-gray-50 p-4 mb-4">
               <p className="text-sm text-gray-600">Start call to connect microphone + speaker directly in this page.</p>
               <p className="text-xs text-gray-500 mt-2">Status: {callStatus} · Mode: {callMode}</p>
+              <p className="text-xs text-gray-500 mt-1">Attempt: {sessionAttempt}</p>
               {agentDebug ? <p className="text-xs text-gray-500 mt-1">Agent: {agentDebug}</p> : null}
             </div>
 
@@ -378,6 +370,15 @@ export function VendorLiveCallStudio({
               </button>
             </div>
             {callMsg ? <p className="text-xs text-gray-500 mt-3 max-w-md">{callMsg}</p> : null}
+
+            {(lastErrorDebug || lastDisconnectDebug || signedUrlDebug) ? (
+              <div className="mt-4 w-full max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">Debug</p>
+                {lastErrorDebug ? <p className="mt-2 text-xs text-amber-900 break-words"><strong>Error:</strong> {lastErrorDebug}</p> : null}
+                {lastDisconnectDebug ? <p className="mt-2 text-xs text-amber-900 break-words"><strong>Disconnect:</strong> {lastDisconnectDebug}</p> : null}
+                {signedUrlDebug ? <p className="mt-2 text-xs text-amber-900 break-all"><strong>Signed URL:</strong> {signedUrlDebug}</p> : null}
+              </div>
+            ) : null}
 
           </section>
 
