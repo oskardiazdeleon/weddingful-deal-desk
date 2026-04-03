@@ -105,6 +105,7 @@ export function VendorLiveCallStudio({
   const [lastErrorDebug, setLastErrorDebug] = useState("");
   const [signedUrlDebug, setSignedUrlDebug] = useState("");
   const conversationRef = useRef<Conversation | null>(null);
+  const transcriptContainerRef = useRef<HTMLDivElement | null>(null);
   const manualEndRef = useRef(false);
   const sessionNonceRef = useRef(0);
 
@@ -251,6 +252,12 @@ export function VendorLiveCallStudio({
     };
   }, []);
 
+  useEffect(() => {
+    const el = transcriptContainerRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [transcript]);
+
   const callAnalysis = useMemo(() => {
     const callerLines = transcript.filter((t) => t.speaker === "Caller");
     const agentLines = transcript.filter((t) => t.speaker === "AI Assistant");
@@ -383,22 +390,7 @@ export function VendorLiveCallStudio({
           </section>
 
           <aside className="rounded-xl border border-gray-200 bg-white p-3 h-fit">
-            <p className="text-sm font-semibold text-gray-900 mb-2">Live Transcript</p>
-            <div className="space-y-2 max-h-[620px] overflow-auto pr-1">
-              {transcript.length === 0 ? (
-                <div className="rounded-lg p-3 text-sm bg-gray-50 text-gray-500">
-                  No live transcript yet. Click Start Call and begin speaking.
-                </div>
-              ) : null}
-              {transcript.map((line, idx) => (
-                <div key={`${line.speaker}-${idx}`} className={`rounded-lg p-2.5 text-sm ${line.speaker === "AI Assistant" ? "bg-rose-50" : line.speaker === "System" ? "bg-blue-50" : "bg-gray-50"}`}>
-                  <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">{line.speaker}</p>
-                  <p className="text-gray-700">{line.text}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-3 rounded-lg border border-gray-200 p-3">
+            <div className="rounded-lg border border-gray-200 p-3 mb-3">
               <p className="text-xs text-gray-500">Live Call Quality Analysis</p>
               <p className="text-lg font-semibold text-gray-900">Overall: {callAnalysis.overall}/100</p>
 
@@ -414,6 +406,21 @@ export function VendorLiveCallStudio({
                 Words: {callAnalysis.wordCount} · Caller talk share: {callAnalysis.callerShare}%
               </p>
               <p className="text-[11px] text-gray-500 mt-1">{callAnalysis.note}</p>
+            </div>
+
+            <p className="text-sm font-semibold text-gray-900 mb-2">Live Transcript</p>
+            <div ref={transcriptContainerRef} className="space-y-2 max-h-[620px] overflow-auto pr-1">
+              {transcript.length === 0 ? (
+                <div className="rounded-lg p-3 text-sm bg-gray-50 text-gray-500">
+                  No live transcript yet. Click Start Call and begin speaking.
+                </div>
+              ) : null}
+              {transcript.map((line, idx) => (
+                <div key={`${line.speaker}-${idx}`} className={`rounded-lg p-2.5 text-sm ${line.speaker === "AI Assistant" ? "bg-rose-50" : line.speaker === "System" ? "bg-blue-50" : "bg-gray-50"}`}>
+                  <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">{line.speaker}</p>
+                  <p className="text-gray-700">{line.text}</p>
+                </div>
+              ))}
             </div>
           </aside>
         </div>
